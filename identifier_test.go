@@ -1,4 +1,4 @@
-package generator
+package treetop-generate
 
 import (
 	"testing"
