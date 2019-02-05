@@ -6,7 +6,7 @@ import (
 	"path"
 	"path/filepath"
 
-	"github.com/rur/treetop/generator"
+	generator "github.com/rur/treetop-generator"
 )
 
 type htmlBlockPartialData struct {

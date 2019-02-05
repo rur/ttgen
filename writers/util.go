@@ -5,7 +5,7 @@ import (
 	"regexp"
 	"sort"
 
-	"github.com/rur/treetop/generator"
+	generator "github.com/rur/treetop-generator"
 )
 
 func SanitizeName(name string) (string, error) {

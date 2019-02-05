@@ -11,12 +11,12 @@ import (
 	"regexp"
 	"strings"
 
-	generator "github.com/rur/treetop/generator"
-	writers "github.com/rur/treetop/generator/writers"
+	generate "github.com/rur/treetop-generate"
+	writers "github.com/rur/treetop-generate/writers"
 )
 
 var generateUsage = `
-Usage: treetop generate site.yml [FLAGS...]
+Usage: treetop-generate site.yml [FLAGS...]
 Create a temporary directory and generate templates and server code for given a site map.
 By default the path to the new directory will be printed to stdout.
 
@@ -43,7 +43,7 @@ func main() {
 			fmt.Printf("Error loading sitemap file: %v", err)
 			return
 		}
-		sitemap, err := generator.LoadSitemap(data)
+		sitemap, err := generate.LoadSitemap(data)
 		if err != nil {
 			fmt.Printf("Error parsing sitemap YAML: %v", err)
 			return
@@ -114,7 +114,7 @@ func main() {
 	}
 }
 
-func generate(outDir string, sitemap generator.Sitemap) ([]string, error) {
+func generate(outDir string, sitemap generate.Sitemap) ([]string, error) {
 	var file string
 	var err error
 	created := make([]string, 0)

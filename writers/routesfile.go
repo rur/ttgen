@@ -6,7 +6,7 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/rur/treetop/generator"
+	generator "github.com/rur/treetop-generator"
 )
 
 type pageBlockData struct {

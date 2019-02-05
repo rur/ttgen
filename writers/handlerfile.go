@@ -5,7 +5,7 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/rur/treetop/generator"
+	generator "github.com/rur/treetop-generator"
 )
 
 type handlerBlockData struct {

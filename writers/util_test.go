@@ -4,7 +4,7 @@ import (
 	"reflect"
 	"testing"
 
-	"github.com/rur/treetop/generator"
+	generator "github.com/rur/treetop-generator"
 )
 
 func TestSanitizeName(t *testing.T) {
