@@ -1,6 +1,4 @@
 
-# Treetop Site Map Generator
-
 ### Treetop site scaffold
 
 Quick and dirty application bootstrapping tool for the Treetop project.
