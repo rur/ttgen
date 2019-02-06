@@ -29,12 +29,7 @@ type handlersdata struct {
 	Handlers  []*handlerData
 }
 
-func WriteHandlerFile(dir string, pageDef *generate.PartialDef, namespace string) (string, error) {
-	pageName, err := SanitizeName(pageDef.Name)
-	if err != nil {
-		return "", fmt.Errorf("Invalid page name '%s'.", err)
-	}
-
+func WriteHandlerFile(dir string, pageDef *generate.PartialDef, namespace, pageName string) (string, error) {
 	fileName := "handlers.go"
 	filePath := filepath.Join(dir, "handlers.go")
 	sf, err := os.Create(filePath)

@@ -127,28 +127,31 @@ func generateAndWriteFiles(outDir string, sitemap generate.Sitemap) ([]string, e
 	}
 
 	for _, def := range sitemap.Pages {
-		pageName, err := writers.SanitizeName(def.Name)
+		if def.Page == "" {
+			def.Page = def.Name
+		}
+		pageName, err := writers.SanitizeName(def.Page)
 		if err != nil {
 			return created, err
 		}
 		pageDir := filepath.Join(pageDir, pageName)
 		if err := os.Mkdir(pageDir, os.ModePerm); err != nil {
-			return created, fmt.Errorf("Error creating dir for page '%s'. %s", def.Name, err)
+			return created, fmt.Errorf("Error creating dir for page '%s'. %s", def.Page, err)
 		}
 		templatesDir := filepath.Join(pageDir, "templates")
 		if err := os.Mkdir(templatesDir, os.ModePerm); err != nil {
-			return created, fmt.Errorf("Error creating template dir for page '%s'. %s", def.Name, err)
+			return created, fmt.Errorf("Error creating template dir for page '%s'. %s", def.Page, err)
 		}
 
-		file, err = writers.WriteRoutesFile(pageDir, &def, sitemap.Namespace)
+		file, err = writers.WriteRoutesFile(pageDir, &def, sitemap.Namespace, pageName)
 		if err != nil {
-			return created, fmt.Errorf("Error creating routes.go file for '%s'. %s", def.Name, err)
+			return created, fmt.Errorf("Error creating routes.go file for '%s'. %s", def.Page, err)
 		}
 		created = append(created, path.Join("page", pageName, file))
 
-		file, err = writers.WriteHandlerFile(pageDir, &def, sitemap.Namespace)
+		file, err = writers.WriteHandlerFile(pageDir, &def, sitemap.Namespace, pageName)
 		if err != nil {
-			return created, fmt.Errorf("Error creating handler.go file for page '%s'. %s", def.Name, err)
+			return created, fmt.Errorf("Error creating handler.go file for page '%s'. %s", def.Page, err)
 		}
 		created = append(created, path.Join("page", pageName, file))
 
@@ -156,14 +159,14 @@ func generateAndWriteFiles(outDir string, sitemap generate.Sitemap) ([]string, e
 			// only generate template file if sitemap doesn't have a template path already defined
 			file, err = writers.WriteIndexFile(templatesDir, &def, sitemap.Pages)
 			if err != nil {
-				return created, fmt.Errorf("Error creating index.templ.html file for page '%s'. %s", def.Name, err)
+				return created, fmt.Errorf("Error creating index.templ.html file for page '%s'. %s", def.Page, err)
 			}
 			created = append(created, path.Join("page", pageName, "templates", file))
 		}
 
 		files, err := writers.WriteTemplateBlock(templatesDir, def.Blocks)
 		if err != nil {
-			return created, fmt.Errorf("Error creating HTML partials for page '%s'. %s", def.Name, err)
+			return created, fmt.Errorf("Error creating HTML partials for page '%s'. %s", def.Page, err)
 		}
 		for _, file = range files {
 			created = append(created, path.Join("page", pageName, "templates", file))

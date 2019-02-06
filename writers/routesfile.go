@@ -50,12 +50,7 @@ type pageData struct {
 	Routes          []pageRouteData
 }
 
-func WriteRoutesFile(dir string, pageDef *generate.PartialDef, namespace string) (string, error) {
-	pageName, err := SanitizeName(pageDef.Name)
-	if err != nil {
-		return "", fmt.Errorf("Invalid page name '%s'.", err)
-	}
-
+func WriteRoutesFile(dir string, pageDef *generate.PartialDef, namespace string, pageName string) (string, error) {
 	fileName := "routes.go"
 	filePath := filepath.Join(dir, "routes.go")
 	sf, err := os.Create(filePath)
@@ -220,6 +215,8 @@ func processEntries(extends, blockName string, names []string, def *generate.Par
 		}
 		if def.Fragment {
 			route.Type = "Fragment"
+		} else if def.FullPage {
+			route.Type = "Page"
 		} else {
 			route.Type = "Partial"
 		}

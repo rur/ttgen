@@ -10,16 +10,15 @@ import (
 )
 
 var (
-	contextTemplate *text.Template
-	handlerTemplate *text.Template
-	indexTemplate *html.Template
-	muxTemplate *text.Template
-	partialTemplate *html.Template
+	contextTemplate   *text.Template
+	handlerTemplate   *text.Template
+	indexTemplate     *html.Template
+	muxTemplate       *text.Template
+	partialTemplate   *html.Template
 	resourcesTemplate *text.Template
-	routesTemplate *text.Template
-	serverTemplate *text.Template
-	startTemplate *text.Template
-	
+	routesTemplate    *text.Template
+	serverTemplate    *text.Template
+	startTemplate     *text.Template
 )
 
 func init() {
@@ -60,7 +59,7 @@ func init() {
 	if err != nil {
 		log.Fatal(err)
 	}
-	
+
 }
 
 // templates/context.go.tmpl

@@ -10,8 +10,10 @@ type Sitemap struct {
 }
 
 type PartialDef struct {
+	Page     string                  `yaml:"page"`     // The name of the page
 	Name     string                  `yaml:"name"`     // The unique name for this view
 	Fragment bool                    `yaml:"fragment"` // Is this a 'FragmetOnly' route
+	FullPage bool                    `yaml:"fullpage"` // Is this a 'PageOnly' route
 	Default  bool                    `yaml:"default"`  // Is this a default subview
 	Path     string                  `yaml:"path"`     // determine if a HTTP route should be associated with this view
 	Includes []string                `yaml:"includes"` // list of other partails that should be included in the route
