@@ -1,8 +1,8 @@
-namespace: github.com/rur/treetop-example
+namespace: github.com/rur/userrolesadmin
 pages:
   - name: home
     doc: Landing page of the site
-    uri: /admin
+    uri: /
     blocks:
       nav:
         - name: nav
@@ -14,18 +14,18 @@ pages:
         - name: landing
           default: true
           doc: General admin search area
-          path: /admin
+          path: /
           blocks:
             landing-results:
               - name: user-search-results
-                path: /admin/user-search
+                path: /user-search
 
               - name: role-search-results
-                path: /admin/role-search
+                path: /role-search
 
   - name: history
     doc: Land on current days activity by default
-    uri: /admin/history
+    uri: /history
     blocks:
       nav:
         - name: nav
@@ -35,11 +35,11 @@ pages:
         - name: search
           default: true
           doc: Allow history log to be searched
-          path: /admin/history
+          path: /history
 
   - name: account
     doc: View and edit user account information. Admin controls also.
-    uri: /admin/account
+    uri: /account
     blocks:
       nav:
         - name: nav
@@ -49,12 +49,12 @@ pages:
         - name: landing
           default: true
           doc: Administer admin user account
-          path: /admin/account
+          path: /account
 
 
   - name: user
     doc: View and edit user roles
-    uri: /admin/users
+    uri: /users
     blocks:
       nav:
         - name: nav
@@ -65,50 +65,50 @@ pages:
       wrapper:
         - name: all-users
           default: true
-          path: /admin/users
+          path: /users
 
         - name: base
           doc: Display user information
-          path: /admin/users/{user}
+          path: /users/{user}
           blocks:
             content:
               - default: true
                 name: roles-list
-                path: /admin/users/{user}/roles
+                path: /users/{user}/roles
                 includes:
                   - user > nav
 
               - name: roles-edit
-                path: /admin/users/{user}/edit
+                path: /users/{user}/edit
                 includes:
                   - user > nav2
 
               - name: assign-roles
-                path: /admin/users/{user}/assign
+                path: /users/{user}/assign
                 includes:
                   - user > nav2
 
               - fragment: true
                 name: find-roles-results
-                path: /admin/users/{user}/find-role-roles
+                path: /users/{user}/find-role-roles
                 includes:
                   - user > nav
 
               - fragment: true
                 name: assign-role-complete
-                path: /admin/users/{user}/assign-roles-complete
+                path: /users/{user}/assign-roles-complete
                 includes:
                   - user > nav2
 
               - fragment: true
                 name: revoke-role-complete
-                path: /admin/users/{user}/revoke-roles-complete
+                path: /users/{user}/revoke-roles-complete
                 includes:
                   - user > nav
 
   - name: role
     doc: View and edit role membership list
-    uri: /admin/roles
+    uri: /roles
     blocks:
       nav:
         - name: nav
@@ -120,49 +120,49 @@ pages:
         - name: all-roles
           doc: show summary of all roles
           default: true
-          path: /admin/roles
+          path: /roles
 
         - name: role
-          path: /admin/roles/{role}
+          path: /roles/{role}
           merge: testing-gen-merge
           blocks:
             content:
               - default: true
                 name: users-list
-                path: /admin/roles/{role}/users
+                path: /roles/{role}/users
                 includes:
                   - role > nav
 
               - name: users-edit
-                path: /admin/roles/{role}/edit
+                path: /roles/{role}/edit
                 includes:
                   - role > nav2
 
               - name: assign-users
-                path: /admin/roles/{role}/assign
+                path: /roles/{role}/assign
                 includes:
                   - role > nav
 
               - fragment: true
                 name: assign-results-roles
-                path: /admin/roles/{role}/find-user-roles-results
+                path: /roles/{role}/find-user-roles-results
                 includes:
                   - role > nav2
 
               - fragment: true
                 name: assign-results-users
-                path: /admin/roles/{role}/find-users-results
+                path: /roles/{role}/find-users-results
                 includes:
                   - role > nav
 
               - fragment: true
                 name: assign-role-complete
-                path: /admin/roles/{role}/assign-role-users-complete
+                path: /roles/{role}/assign-role-users-complete
                 includes:
                   - role > nav2
 
               - fragment: true
                 name: revoke-users-complete
-                path: /admin/roles/{role}/assign-users-complete
+                path: /roles/{role}/assign-users-complete
                 includes:
                   - role > nav
