@@ -6,7 +6,7 @@ import (
 	"path/filepath"
 	"strings"
 
-	generator "github.com/rur/treetop-generator"
+	generate "github.com/rur/ttgen"
 )
 
 type pageBlockData struct {
@@ -50,7 +50,7 @@ type pageData struct {
 	Routes          []pageRouteData
 }
 
-func WriteRoutesFile(dir string, pageDef *generator.PartialDef, namespace string) (string, error) {
+func WriteRoutesFile(dir string, pageDef *generate.PartialDef, namespace string) (string, error) {
 	pageName, err := SanitizeName(pageDef.Name)
 	if err != nil {
 		return "", fmt.Errorf("Invalid page name '%s'.", err)
@@ -167,7 +167,7 @@ func WriteRoutesFile(dir string, pageDef *generator.PartialDef, namespace string
 	return fileName, nil
 }
 
-func processEntries(extends, blockName string, names []string, def *generator.PartialDef, templatePath string, seen ...string) ([]pageEntryData, []pageRouteData, error) {
+func processEntries(extends, blockName string, names []string, def *generate.PartialDef, templatePath string, seen ...string) ([]pageEntryData, []pageRouteData, error) {
 	var entryType string
 	var entries []pageEntryData
 	var routes []pageRouteData

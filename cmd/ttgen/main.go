@@ -11,12 +11,12 @@ import (
 	"regexp"
 	"strings"
 
-	generate "github.com/rur/treetop-generate"
-	writers "github.com/rur/treetop-generate/writers"
+	generate "github.com/rur/ttgen"
+	writers "github.com/rur/ttgen/writers"
 )
 
 var generateUsage = `
-Usage: treetop-generate site.yml [FLAGS...]
+Usage: ttgen site.yml [FLAGS...]
 Create a temporary directory and generate templates and server code for given a site map.
 By default the path to the new directory will be printed to stdout.
 
@@ -28,93 +28,83 @@ FLAGS:
 
 func main() {
 	if len(os.Args) < 2 {
-		fmt.Printf("Usage: treetop [cmd] args... \n")
+		fmt.Printf(generateUsage)
 		return
 	}
-	if os.Args[1] == "generate" {
-		if len(os.Args) < 3 {
-			fmt.Printf(generateUsage)
-			return
-		}
-		config := os.Args[2]
+	config := os.Args[1]
 
-		data, err := ioutil.ReadFile(config)
-		if err != nil {
-			fmt.Printf("Error loading sitemap file: %v", err)
-			return
-		}
-		sitemap, err := generate.LoadSitemap(data)
-		if err != nil {
-			fmt.Printf("Error parsing sitemap YAML: %v", err)
-			return
-		}
+	data, err := ioutil.ReadFile(config)
+	if err != nil {
+		fmt.Printf("Error loading sitemap file: %v", err)
+		return
+	}
+	sitemap, err := generate.LoadSitemap(data)
+	if err != nil {
+		fmt.Printf("Error parsing sitemap YAML: %v", err)
+		return
+	}
 
-		human := false
-		skip := 0
-		tmpDir := ""
-		for i, arg := range os.Args[3:] {
-			if skip > 0 {
-				skip = skip - 1
-				continue
-			} else if arg == "--human" {
-				human = true
-			} else if arg == "--temp-dir" {
-				tmpDir = os.Args[i+4]
-				skip = 1
-			} else {
-				fmt.Printf("Unknown flag '%s'\n\n%s", arg, generateUsage)
-				return
-			}
-		}
-
-		outfolder, err := ioutil.TempDir(tmpDir, "")
-		if err != nil {
-			fmt.Printf("Error creating temp dir: %s", err)
-			return
-		}
-
-		createdFiles, err := generate(outfolder, sitemap)
-		if err != nil {
-			fmt.Printf("Treetop: Failed to build scaffold for sitemap %s\nGenerator Error: %s\n", config, err.Error())
-			if err := os.RemoveAll(outfolder); err != nil {
-				fmt.Printf("Scaffold failed but temp directory was not cleaned up: %s\n", err.Error())
-			}
-			return
+	human := false
+	skip := 0
+	tmpDir := ""
+	for i, arg := range os.Args[2:] {
+		if skip > 0 {
+			skip = skip - 1
+			continue
+		} else if arg == "--human" {
+			human = true
+		} else if arg == "--temp-dir" {
+			tmpDir = os.Args[i+3]
+			skip = 1
 		} else {
-			// attempt to format the go code
-			// this should not cause the generate command to fail if go fmt fails for some reason
-			var fmtError []string
-			for i := range createdFiles {
-				if strings.HasSuffix(createdFiles[i], ".go") {
-					cmd := exec.Command("go", "fmt", path.Join(outfolder, createdFiles[i]))
-					output, err := cmd.CombinedOutput()
-					if err != nil {
-						fmtError = append(fmtError, fmt.Sprintf("%s Error: %s\nOutput: %s", createdFiles[i], err, string(output)))
-					}
+			fmt.Printf("Unknown flag '%s'\n\n%s", arg, generateUsage)
+			return
+		}
+	}
+
+	outfolder, err := ioutil.TempDir(tmpDir, "")
+	if err != nil {
+		fmt.Printf("Error creating temp dir: %s", err)
+		return
+	}
+
+	createdFiles, err := generateAndWriteFiles(outfolder, sitemap)
+	if err != nil {
+		fmt.Printf("Treetop: Failed to build scaffold for sitemap %s\n Error: %s\n", config, err.Error())
+		if err := os.RemoveAll(outfolder); err != nil {
+			fmt.Printf("Scaffold failed but temp directory was not cleaned up: %s\n", err.Error())
+		}
+		return
+	} else {
+		// attempt to format the go code
+		// this should not cause the generate command to fail if go fmt fails for some reason
+		var fmtError []string
+		for i := range createdFiles {
+			if strings.HasSuffix(createdFiles[i], ".go") {
+				cmd := exec.Command("go", "fmt", path.Join(outfolder, createdFiles[i]))
+				output, err := cmd.CombinedOutput()
+				if err != nil {
+					fmtError = append(fmtError, fmt.Sprintf("%s Error: %s\nOutput: %s", createdFiles[i], err, string(output)))
 				}
 			}
-			if len(fmtError) > 0 {
-				log.Fatalf(
-					"Generated folder %s but `go fmt` failed for the following files:\n\t%s",
-					outfolder,
-					strings.Join(fmtError, "\n\t"),
-				)
-			}
 		}
-
-		if human {
-			fmt.Printf("Generated Treetop file in folder: %s\n\nFiles:\n\t%s\n", outfolder, strings.Join(createdFiles, "\n\t"))
-		} else {
-			fmt.Print(outfolder)
+		if len(fmtError) > 0 {
+			log.Fatalf(
+				"Generated folder %s but `go fmt` failed for the following files:\n\t%s",
+				outfolder,
+				strings.Join(fmtError, "\n\t"),
+			)
 		}
+	}
 
+	if human {
+		fmt.Printf("Generated Treetop file in folder: %s\n\nFiles:\n\t%s\n", outfolder, strings.Join(createdFiles, "\n\t"))
 	} else {
-		fmt.Printf("Treetop: unknown command %s\n\n", os.Args[1])
-		return
+		fmt.Print(outfolder)
 	}
 }
 
-func generate(outDir string, sitemap generate.Sitemap) ([]string, error) {
+func generateAndWriteFiles(outDir string, sitemap generate.Sitemap) ([]string, error) {
 	var file string
 	var err error
 	created := make([]string, 0)

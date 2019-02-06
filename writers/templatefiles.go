@@ -6,7 +6,7 @@ import (
 	"path"
 	"path/filepath"
 
-	generator "github.com/rur/treetop-generator"
+	generate "github.com/rur/ttgen"
 )
 
 type htmlBlockPartialData struct {
@@ -44,7 +44,7 @@ type indexData struct {
 	Blocks    []*htmlBlockData
 }
 
-func WriteIndexFile(dir string, pageDef *generator.PartialDef, otherPages []generator.PartialDef) (string, error) {
+func WriteIndexFile(dir string, pageDef *generate.PartialDef, otherPages []generate.PartialDef) (string, error) {
 	fileName := "index.html.tmpl"
 	filePath := filepath.Join(dir, "index.html.tmpl")
 	sf, err := os.Create(filePath)
@@ -71,7 +71,7 @@ func WriteIndexFile(dir string, pageDef *generator.PartialDef, otherPages []gene
 	blocks := make([]*htmlBlockData, 0, len(blockList))
 	for _, block := range blockList {
 		blockData := htmlBlockData{
-			FieldName:  generator.ValidPublicIdentifier(block.name),
+			FieldName:  generate.ValidPublicIdentifier(block.name),
 			Identifier: block.ident,
 			Name:       block.name,
 			Partials:   make([]*htmlBlockPartialData, 0, len(block.partials)),
@@ -99,7 +99,7 @@ func WriteIndexFile(dir string, pageDef *generator.PartialDef, otherPages []gene
 	return fileName, nil
 }
 
-func WriteTemplateBlock(dir string, blocks map[string][]generator.PartialDef) ([]string, error) {
+func WriteTemplateBlock(dir string, blocks map[string][]generate.PartialDef) ([]string, error) {
 	var created []string
 	blockList, err := iterateSortedBlocks(blocks)
 	if err != nil {
@@ -125,7 +125,7 @@ func WriteTemplateBlock(dir string, blocks map[string][]generator.PartialDef) ([
 	return created, nil
 }
 
-func writePartialTemplate(dir string, def *generator.PartialDef, extends string) ([]string, error) {
+func writePartialTemplate(dir string, def *generate.PartialDef, extends string) ([]string, error) {
 	var created []string
 	name, err := SanitizeName(def.Name)
 	if err != nil {
@@ -148,7 +148,7 @@ func writePartialTemplate(dir string, def *generator.PartialDef, extends string)
 		}
 		for _, block := range blockList {
 			blockData := htmlBlockData{
-				FieldName:  generator.ValidPublicIdentifier(block.name),
+				FieldName:  generate.ValidPublicIdentifier(block.name),
 				Identifier: block.ident,
 				Name:       block.name,
 				Partials:   make([]*htmlBlockPartialData, 0, len(block.partials)),

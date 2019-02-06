@@ -5,7 +5,7 @@ import (
 	"os"
 	"path/filepath"
 
-	generator "github.com/rur/treetop-generator"
+	generate "github.com/rur/ttgen"
 )
 
 type handlerBlockData struct {
@@ -29,7 +29,7 @@ type handlersdata struct {
 	Handlers  []*handlerData
 }
 
-func WriteHandlerFile(dir string, pageDef *generator.PartialDef, namespace string) (string, error) {
+func WriteHandlerFile(dir string, pageDef *generate.PartialDef, namespace string) (string, error) {
 	pageName, err := SanitizeName(pageDef.Name)
 	if err != nil {
 		return "", fmt.Errorf("Invalid page name '%s'.", err)
@@ -67,7 +67,7 @@ func WriteHandlerFile(dir string, pageDef *generator.PartialDef, namespace strin
 			pageHandler.Blocks = append(pageHandler.Blocks, &handlerBlockData{
 				Identifier: block.ident + "Data",
 				Name:       block.name,
-				FieldName:  generator.ValidPublicIdentifier(block.name),
+				FieldName:  generate.ValidPublicIdentifier(block.name),
 			})
 		}
 
@@ -92,7 +92,7 @@ func WriteHandlerFile(dir string, pageDef *generator.PartialDef, namespace strin
 	return fileName, nil
 }
 
-func processHandlersDef(blockName string, def *generator.PartialDef) ([]*handlerData, error) {
+func processHandlersDef(blockName string, def *generate.PartialDef) ([]*handlerData, error) {
 	var handlers []*handlerData
 	var entryType string
 	if def.Fragment {
@@ -133,7 +133,7 @@ func processHandlersDef(blockName string, def *generator.PartialDef) ([]*handler
 			handler.Blocks = append(handler.Blocks, &handlerBlockData{
 				Identifier: block.ident + "Data",
 				Name:       block.name,
-				FieldName:  generator.ValidPublicIdentifier(block.name),
+				FieldName:  generate.ValidPublicIdentifier(block.name),
 			})
 		}
 

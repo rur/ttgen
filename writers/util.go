@@ -5,7 +5,7 @@ import (
 	"regexp"
 	"sort"
 
-	generator "github.com/rur/treetop-generator"
+	generate "github.com/rur/ttgen"
 )
 
 func SanitizeName(name string) (string, error) {
@@ -13,16 +13,16 @@ func SanitizeName(name string) (string, error) {
 	if !re.MatchString(name) {
 		return name, fmt.Errorf("Invalid name '%s'", name)
 	}
-	return generator.ValidIdentifier(name), nil
+	return generate.ValidIdentifier(name), nil
 }
 
 type blockDef struct {
 	name     string
 	ident    string
-	partials []generator.PartialDef
+	partials []generate.PartialDef
 }
 
-func iterateSortedBlocks(blocks map[string][]generator.PartialDef) ([]blockDef, error) {
+func iterateSortedBlocks(blocks map[string][]generate.PartialDef) ([]blockDef, error) {
 	output := make([]blockDef, 0, len(blocks))
 	var keys []string
 	for k := range blocks {

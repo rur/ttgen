@@ -4,7 +4,7 @@ import (
 	"os"
 	"path/filepath"
 
-	generator "github.com/rur/treetop-generator"
+	generate "github.com/rur/ttgen"
 )
 
 type startdata struct {
@@ -12,7 +12,7 @@ type startdata struct {
 	Pages     []string
 }
 
-func WriteStartFile(dir string, pages []generator.PartialDef, namespace string) (string, error) {
+func WriteStartFile(dir string, pages []generate.PartialDef, namespace string) (string, error) {
 	fileName := "start.go"
 	filePath := filepath.Join(dir, "start.go")
 	sf, err := os.Create(filePath)

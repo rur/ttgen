@@ -4,7 +4,7 @@ import (
 	"reflect"
 	"testing"
 
-	generator "github.com/rur/treetop-generator"
+	generate "github.com/rur/ttgen"
 )
 
 func TestSanitizeName(t *testing.T) {
@@ -54,7 +54,7 @@ func TestSanitizeName(t *testing.T) {
 
 func Test_iterateSortedBlocks(t *testing.T) {
 	type args struct {
-		blocks map[string][]generator.PartialDef
+		blocks map[string][]generate.PartialDef
 	}
 	tests := []struct {
 		name    string
@@ -65,18 +65,18 @@ func Test_iterateSortedBlocks(t *testing.T) {
 		{
 			name: "basic",
 			args: args{
-				map[string][]generator.PartialDef{},
+				map[string][]generate.PartialDef{},
 			},
 			want:    []string{},
 			wantErr: false,
 		}, {
 			name: "sort three blocks",
 			args: args{
-				map[string][]generator.PartialDef{
-					"C": []generator.PartialDef{generator.PartialDef{Name: "third"}},
-					"A": []generator.PartialDef{generator.PartialDef{Name: "first"}},
-					"Z": []generator.PartialDef{generator.PartialDef{Name: "last"}},
-					"B": []generator.PartialDef{generator.PartialDef{Name: "second"}},
+				map[string][]generate.PartialDef{
+					"C": []generate.PartialDef{generate.PartialDef{Name: "third"}},
+					"A": []generate.PartialDef{generate.PartialDef{Name: "first"}},
+					"Z": []generate.PartialDef{generate.PartialDef{Name: "last"}},
+					"B": []generate.PartialDef{generate.PartialDef{Name: "second"}},
 				},
 			},
 			want:    []string{"A", "B", "C", "Z"},

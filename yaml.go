@@ -1,4 +1,4 @@
-package treetop-generate
+package ttgen
 
 import (
 	"gopkg.in/yaml.v2"

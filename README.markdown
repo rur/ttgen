@@ -16,6 +16,6 @@ Command used to scaffold a functioning application with all routers and handlers
 
 ### Example Usage
 
-    treetop-generate sitemap.yaml
+    ttgen sitemap.yaml
     -> /tmp/12345678
 
