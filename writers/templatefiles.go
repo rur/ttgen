@@ -99,7 +99,7 @@ func WriteIndexFile(dir string, pageDef *generate.PartialDef, otherPages []gener
 	return fileName, nil
 }
 
-func WriteTemplateBlock(dir string, blocks map[string][]generate.PartialDef) ([]string, error) {
+func WriteTemplateBlock(dir string, blocks map[string][]*generate.PartialDef) ([]string, error) {
 	var created []string
 	blockList, err := iterateSortedBlocks(blocks)
 	if err != nil {
@@ -113,7 +113,7 @@ func WriteTemplateBlock(dir string, blocks map[string][]generate.PartialDef) ([]
 			}
 		}
 		for _, def := range block.partials {
-			files, err := writePartialTemplate(blockTemplDir, &def, block.name)
+			files, err := writePartialTemplate(blockTemplDir, def, block.name)
 			if err != nil {
 				return created, err
 			}

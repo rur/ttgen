@@ -16,57 +16,37 @@ import (
 )
 
 var generateUsage = `
-Usage: ttgen site.yml [FLAGS...]
-Create a temporary directory and generate templates and server code for given a site map.
-By default the path to the new directory will be printed to stdout.
+Usage: ttgen-routes pagemap.yml routes.go.templ ./routes.go
+Write a routes file from pagemap yaml. This will overwrite an existing file at the destination
 
-FLAGS:
---human	Human readable output
---temp-dir [DIRECTORY_PATH]	Path to directory that should be used as 'temp'
 
 `
 
 func main() {
-	if len(os.Args) < 2 {
+	if len(os.Args) < 4 {
 		fmt.Printf(generateUsage)
 		return
 	}
-	config := os.Args[1]
+	yamlPath := os.Args[1]
 
-	data, err := ioutil.ReadFile(config)
+	data, err := ioutil.ReadFile(yamlPath)
 	if err != nil {
-		fmt.Printf("Error loading sitemap file: %v", err)
+		fmt.Printf("Error loading pagemap file: %v", err)
 		return
 	}
-	sitemap, err := generate.LoadSitemap(data)
+	pagemap, err := generate.LoadSitemap(data)
 	if err != nil {
-		fmt.Printf("Error parsing sitemap YAML: %v", err)
+		fmt.Printf("Error parsing pagemap YAML: %v", err)
 		return
 	}
 
-	human := false
-	skip := 0
-	tmpDir := ""
-	for i, arg := range os.Args[2:] {
-		if skip > 0 {
-			skip = skip - 1
-			continue
-		} else if arg == "--human" {
-			human = true
-		} else if arg == "--temp-dir" {
-			tmpDir = os.Args[i+3]
-			skip = 1
-		} else {
-			fmt.Printf("Unknown flag '%s'\n\n%s", arg, generateUsage)
-			return
-		}
-	}
-
-	outfolder, err := ioutil.TempDir(tmpDir, "")
+	templPath := os.Args[2]
+	templData, err := ioutil.ReadFile(templPath)
 	if err != nil {
-		fmt.Printf("Error creating temp dir: %s", err)
+		fmt.Printf("Error loading routes template file: %v", err)
 		return
 	}
+	destPath := os.Args[3]
 
 	createdFiles, err := generateAndWriteFiles(outfolder, sitemap)
 	if err != nil {
@@ -143,13 +123,11 @@ func generateAndWriteFiles(outDir string, sitemap generate.Sitemap) ([]string, e
 			return created, fmt.Errorf("Error creating template dir for page '%s'. %s", def.Page, err)
 		}
 
-		files, err := writers.WriteRoutesFile(pageDir, &def, sitemap.Namespace, pageName)
+		file, err = writers.WriteRoutesFile(pageDir, &def, sitemap.Namespace, pageName)
 		if err != nil {
-			return created, fmt.Errorf("Error creating routes files for '%s'. %s", def.Page, err)
+			return created, fmt.Errorf("Error creating routes.go file for '%s'. %s", def.Page, err)
 		}
-		for _, file = range files {
-			created = append(created, path.Join("page", pageName, file))
-		}
+		created = append(created, path.Join("page", pageName, file))
 
 		file, err = writers.WriteHandlerFile(pageDir, &def, sitemap.Namespace, pageName)
 		if err != nil {
@@ -166,7 +144,7 @@ func generateAndWriteFiles(outDir string, sitemap generate.Sitemap) ([]string, e
 			created = append(created, path.Join("page", pageName, "templates", file))
 		}
 
-		files, err = writers.WriteTemplateBlock(templatesDir, def.Blocks)
+		files, err := writers.WriteTemplateBlock(templatesDir, def.Blocks)
 		if err != nil {
 			return created, fmt.Errorf("Error creating HTML partials for page '%s'. %s", def.Page, err)
 		}
