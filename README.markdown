@@ -28,9 +28,9 @@ definition. The files will be created in a temporary directory. The generated fo
 
 `--temp-dir DIR` Specify a directory to use as tmp for the purpose of generating files.
 
-### `ttroutemap` Command
+### `ttroutes` Command
 
-Generate a page routes.go file given a 'routemap' file. This is the same format as the
+Generate a page routes.go file given a 'routemap' YAML file. This is the same format as the
 the sitemap YAML but only the first page in the list will be adopted
 
 #### Example Usage
