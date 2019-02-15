@@ -5,7 +5,6 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
-	text "text/template"
 
 	generate "github.com/rur/ttgen"
 )
@@ -49,34 +48,14 @@ type pageData struct {
 	Routes    []pageRouteData
 }
 
-func WriteRoutesFile(dir string, pageDef *generate.PartialDef, namespace string, pageName string) ([]string, error) {
-	var files []string
+func WriteRoutesFile(dir string, pageDef *generate.PartialDef, namespace string, pageName string) (string, error) {
 	fileName := "routes.go"
 	filePath := filepath.Join(dir, "routes.go")
 	sf, err := os.Create(filePath)
 	if err != nil {
-		return files, err
+		return fileName, err
 	}
-	files = append(files, fileName)
 	defer sf.Close()
-
-	pagemapName := "pagemap.yml"
-	pagemapPath := filepath.Join(dir, "pagemap.yml")
-	yf, err := os.Create(pagemapPath)
-	if err != nil {
-		return files, err
-	}
-	files = append(files, pagemapName)
-	defer yf.Close()
-
-	templateName := "routes.go.templ"
-	templatePath := filepath.Join(dir, "routes.go.templ")
-	tf, err := os.Create(templatePath)
-	if err != nil {
-		return files, err
-	}
-	files = append(files, templateName)
-	defer tf.Close()
 
 	var entries []pageEntryData
 	var routes []pageRouteData
@@ -101,7 +80,7 @@ func WriteRoutesFile(dir string, pageDef *generate.PartialDef, namespace string,
 
 	sortedBlocks, err := iterateSortedBlocks(pageDef.Blocks)
 	if err != nil {
-		return files, err
+		return fileName, err
 	}
 	for _, block := range sortedBlocks {
 		entries = append(entries, pageEntryData{
@@ -119,7 +98,7 @@ func WriteRoutesFile(dir string, pageDef *generate.PartialDef, namespace string,
 				block.name,
 			)
 			if err != nil {
-				return files, err
+				return fileName, err
 			}
 			entries = append(entries, blockEntries...)
 			routes = append(routes, blockRoutes...)
@@ -133,7 +112,7 @@ func WriteRoutesFile(dir string, pageDef *generate.PartialDef, namespace string,
 	}
 
 	if len(routes) == 0 {
-		return files, fmt.Errorf("Page '%s' does not have any routes!", pageName)
+		return fileName, fmt.Errorf("Page '%s' does not have any routes!", pageName)
 	}
 
 	// process includes in routes by scanning entries for matching paths
@@ -149,7 +128,7 @@ func WriteRoutesFile(dir string, pageDef *generate.PartialDef, namespace string,
 				route.Includes[i] = entries[j].Name
 				entries[j].Assignment = entries[j].Name + " :="
 			} else {
-				return files, fmt.Errorf("Failed to match include path '%s' to a sub view entry for route '%s'", incl, route.Path)
+				return fileName, fmt.Errorf("Failed to match include path '%s' to a sub view entry for route '%s'", incl, route.Path)
 			}
 		}
 	}
@@ -177,35 +156,8 @@ func WriteRoutesFile(dir string, pageDef *generate.PartialDef, namespace string,
 	pageDef.Template = template
 	pageDef.Handler = handler
 
-	if routesTemplateTemplate, err := text.New(templateName).Parse(routesTempl); err != nil {
-		return files, err
-	} else {
-		t2 := routesTemplateTemplate.New("body")
-		if _, err := t2.Delims("[[", "]]").Parse(`[[ block "rotuesbody" .]]{{ . }}[[ end ]]`); err != nil {
-			return files, err
-		} else if err = routesTemplateTemplate.Execute(tf, page); err != nil {
-			return files, err
-		}
-	}
-
-	t := routesTemplate.New("body")
-	if _, err := t.Parse(routesBodyTempl); err != nil {
-		return files, err
-	}
-	if err = routesTemplate.Execute(sf, page); err != nil {
-		return files, err
-	}
-	files = append(files, fileName)
-
-	if enc, err := generate.EncodeSitemap(generate.Sitemap{
-		Namespace: namespace,
-		Pages:     []generate.PartialDef{*pageDef},
-	}); err != nil {
-		return files, err
-	} else if _, err = yf.Write(enc); err != nil {
-		return files, err
-	}
-	return files, err
+	err = routesTemplate.Execute(sf, page)
+	return fileName, err
 }
 
 func processEntries(extends, blockName string, names []string, def *generate.PartialDef, templatePath string, seen ...string) ([]pageEntryData, []pageRouteData, error) {

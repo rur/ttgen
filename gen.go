@@ -25,16 +25,15 @@ type genTemplate struct {
 
 func main() {
 	files := map[string]string{
-		"templates/index.html.tmpl":     "indexTempl",
-		"templates/partial.html.tmpl":   "partialTempl",
-		"templates/start.go.tmpl":       "startTempl",
-		"templates/context.go.tmpl":     "contextTempl",
-		"templates/mux.go.tmpl":         "muxTempl",
-		"templates/server.go.tmpl":      "serverTempl",
-		"templates/resources.go.tmpl":   "resourcesTempl",
-		"templates/routes.go.tmpl":      "routesTempl",
-		"templates/routes_body.go.tmpl": "routesBodyTempl",
-		"templates/handler.go.tmpl":     "handlerTempl",
+		"templates/index.html.tmpl":   "indexTempl",
+		"templates/partial.html.tmpl": "partialTempl",
+		"templates/start.go.tmpl":     "startTempl",
+		"templates/context.go.tmpl":   "contextTempl",
+		"templates/mux.go.tmpl":       "muxTempl",
+		"templates/server.go.tmpl":    "serverTempl",
+		"templates/resources.go.tmpl": "resourcesTempl",
+		"templates/routes.go.tmpl":    "routesTempl",
+		"templates/handler.go.tmpl":   "handlerTempl",
 	}
 	content := make([]genTemplate, 0, 4)
 

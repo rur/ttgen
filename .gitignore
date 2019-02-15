@@ -12,6 +12,6 @@
 .vscode
 .sublime-*
 
-treetop
+ttgen*
 temp/
 idea/
