@@ -5,6 +5,7 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
+	text "text/template"
 
 	generate "github.com/rur/ttgen"
 )
@@ -67,6 +68,15 @@ func WriteRoutesFile(dir string, pageDef *generate.PartialDef, namespace string,
 	}
 	files = append(files, pagemapName)
 	defer yf.Close()
+
+	templateName := "routes.go.templ"
+	templatePath := filepath.Join(dir, "routes.go.templ")
+	tf, err := os.Create(templatePath)
+	if err != nil {
+		return files, err
+	}
+	files = append(files, templateName)
+	defer tf.Close()
 
 	var entries []pageEntryData
 	var routes []pageRouteData
@@ -166,6 +176,17 @@ func WriteRoutesFile(dir string, pageDef *generate.PartialDef, namespace string,
 
 	pageDef.Template = template
 	pageDef.Handler = handler
+
+	if routesTemplateTemplate, err := text.New(templateName).Parse(routesTempl); err != nil {
+		return files, err
+	} else {
+		t2 := routesTemplateTemplate.New("body")
+		if _, err := t2.Delims("[[", "]]").Parse(`[[ block "rotuesbody" .]]{{ . }}[[ end ]]`); err != nil {
+			return files, err
+		} else if err = routesTemplateTemplate.Execute(tf, page); err != nil {
+			return files, err
+		}
+	}
 
 	t := routesTemplate.New("body")
 	if _, err := t.Parse(routesBodyTempl); err != nil {
