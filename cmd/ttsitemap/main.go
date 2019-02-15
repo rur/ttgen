@@ -143,20 +143,6 @@ func generateAndWriteFiles(outDir string, sitemap generate.Sitemap) ([]string, e
 			return created, fmt.Errorf("Error creating template dir for page '%s'. %s", def.Page, err)
 		}
 
-		file, err := writers.WriteRoutesFile(pageDir, "routes.go", &def, sitemap.Namespace, pageName, "")
-		if err != nil {
-			return created, fmt.Errorf("Error creating routes.go file for '%s'. %s", def.Page, err)
-		}
-		created = append(created, path.Join("page", pageName, file))
-
-		files, err := writers.WriteRoutemapFiles(pageDir, &def, sitemap.Namespace, pageName)
-		if err != nil {
-			return created, fmt.Errorf("Error creating routemap files for '%s'. %s", def.Page, err)
-		}
-		for _, file = range files {
-			created = append(created, path.Join("page", pageName, file))
-		}
-
 		file, err = writers.WriteHandlerFile(pageDir, &def, sitemap.Namespace, pageName)
 		if err != nil {
 			return created, fmt.Errorf("Error creating handler.go file for page '%s'. %s", def.Page, err)
@@ -172,12 +158,28 @@ func generateAndWriteFiles(outDir string, sitemap generate.Sitemap) ([]string, e
 			created = append(created, path.Join("page", pageName, "templates", file))
 		}
 
-		files, err = writers.WriteTemplateBlock(templatesDir, def.Blocks)
+		files, err := writers.WriteTemplateBlock(templatesDir, def.Blocks)
 		if err != nil {
 			return created, fmt.Errorf("Error creating HTML partials for page '%s'. %s", def.Page, err)
 		}
 		for _, file = range files {
 			created = append(created, path.Join("page", pageName, "templates", file))
+		}
+
+		// NOTE: Routes need to done last due to mutation that happens to the sitemap definitions.
+		// This is hack(y) code. The whole thing should be rewritten if the tool turns out to be useful in the future.
+		file, err := writers.WriteRoutesFile(pageDir, "routes.go", &def, sitemap.Namespace, pageName, "")
+		if err != nil {
+			return created, fmt.Errorf("Error creating routes.go file for '%s'. %s", def.Page, err)
+		}
+		created = append(created, path.Join("page", pageName, file))
+
+		files, err = writers.WriteRoutemapFiles(pageDir, &def, sitemap.Namespace, pageName)
+		if err != nil {
+			return created, fmt.Errorf("Error creating routemap files for '%s'. %s", def.Page, err)
+		}
+		for _, file = range files {
+			created = append(created, path.Join("page", pageName, file))
 		}
 	}
 
