@@ -12,6 +12,7 @@
 .vscode
 .sublime-*
 
-ttgen*
+ttsitemap
+ttroutes
 temp/
 idea/

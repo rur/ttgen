@@ -8,15 +8,15 @@ import (
 	generate "github.com/rur/ttgen"
 )
 
-func WritePagemapFiles(dir string, pageDef *generate.PartialDef, namespace string) ([]string, error) {
+func WriteRoutemapFiles(dir string, pageDef *generate.PartialDef, namespace, pageName string) ([]string, error) {
 	var files []string
-	pagemapName := "pagemap.yml"
-	pagemapPath := filepath.Join(dir, "pagemap.yml")
-	yf, err := os.Create(pagemapPath)
+	routemapName := "routemap.yml"
+	routemapPath := filepath.Join(dir, routemapName)
+	yf, err := os.Create(routemapPath)
 	if err != nil {
 		return files, err
 	}
-	files = append(files, pagemapName)
+	files = append(files, routemapName)
 	defer yf.Close()
 
 	templateName := "routes.go.templ"
@@ -28,15 +28,17 @@ func WritePagemapFiles(dir string, pageDef *generate.PartialDef, namespace strin
 	files = append(files, templateName)
 	defer tf.Close()
 
+	// now use routes template file to generate another template
 	if routesTemplateTemplate, err := text.New(templateName).Parse(routesTempl); err != nil {
 		return files, err
 	} else {
 		t2 := routesTemplateTemplate.New("template")
-		// tricky... replace template definition with a template definition!
+		// replace template definition with another template definition.
 		if _, err := t2.Delims("[[", "]]").Parse(`[[ block "routes" . ]]{{ block "routes" . }}{{ end }}[[ end ]]`); err != nil {
 			return files, err
 		} else if err = routesTemplateTemplate.Execute(tf, pageData{
 			Namespace: namespace,
+			Name:      pageName,
 		}); err != nil {
 			return files, err
 		}

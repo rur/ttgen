@@ -16,7 +16,7 @@ import (
 )
 
 var generateUsage = `
-Usage: ttgen site.yml [FLAGS...]
+Usage: ttsitemap site.yml [FLAGS...]
 Create a temporary directory and generate templates and server code for given a site map.
 By default the path to the new directory will be printed to stdout.
 
@@ -143,15 +143,15 @@ func generateAndWriteFiles(outDir string, sitemap generate.Sitemap) ([]string, e
 			return created, fmt.Errorf("Error creating template dir for page '%s'. %s", def.Page, err)
 		}
 
-		file, err := writers.WriteRoutesFile(pageDir, &def, sitemap.Namespace, pageName)
+		file, err := writers.WriteRoutesFile(pageDir, "routes.go", &def, sitemap.Namespace, pageName, "")
 		if err != nil {
 			return created, fmt.Errorf("Error creating routes.go file for '%s'. %s", def.Page, err)
 		}
 		created = append(created, path.Join("page", pageName, file))
 
-		files, err := writers.WritePagemapFiles(pageDir, &def, sitemap.Namespace)
+		files, err := writers.WriteRoutemapFiles(pageDir, &def, sitemap.Namespace, pageName)
 		if err != nil {
-			return created, fmt.Errorf("Error creating pagemap for '%s'. %s", def.Page, err)
+			return created, fmt.Errorf("Error creating routemap files for '%s'. %s", def.Page, err)
 		}
 		for _, file = range files {
 			created = append(created, path.Join("page", pageName, file))

@@ -31,6 +31,12 @@ func LoadSitemap(data []byte) (Sitemap, error) {
 	if err := yaml.Unmarshal(data, &config); err != nil {
 		return config, err
 	}
+	for i := 0; i < len(config.Pages); i++ {
+		if config.Pages[i].Page == "" {
+			config.Pages[i].Page = config.Pages[i].Name
+		}
+	}
+
 	return config, nil
 }
 

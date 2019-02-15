@@ -5,6 +5,7 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
+	textTemplate "text/template"
 
 	generate "github.com/rur/ttgen"
 )
@@ -48,8 +49,7 @@ type pageData struct {
 	Routes    []pageRouteData
 }
 
-func WriteRoutesFile(dir string, pageDef *generate.PartialDef, namespace string, pageName string) (string, error) {
-	fileName := "routes.go"
+func WriteRoutesFile(dir string, fileName string, pageDef *generate.PartialDef, namespace string, pageName string, overrideTempl string) (string, error) {
 	filePath := filepath.Join(dir, "routes.go")
 	sf, err := os.Create(filePath)
 	if err != nil {
@@ -156,7 +156,20 @@ func WriteRoutesFile(dir string, pageDef *generate.PartialDef, namespace string,
 	pageDef.Template = template
 	pageDef.Handler = handler
 
-	err = routesTemplate.Execute(sf, page)
+	if overrideTempl != "" {
+		// user override for outer template of routes page
+		master, err := textTemplate.New("override").Parse(overrideTempl)
+		if err != nil {
+			return fileName, err
+		}
+		if _, err := master.New("overlay").Parse(routesTempl); err != nil {
+			return fileName, err
+		}
+		err = master.ExecuteTemplate(sf, master.Name(), page)
+	} else {
+		err = routesTemplate.Execute(sf, page)
+	}
+
 	return fileName, err
 }
 
