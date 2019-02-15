@@ -78,14 +78,5 @@ func WriteRoutemapFiles(dir string, pageDef *generate.PartialDef, namespace, pag
 		return files, err
 	}
 
-	if enc, err := generate.EncodeSitemap(generate.Sitemap{
-		Namespace: namespace,
-		Pages:     []generate.PartialDef{*pageDef},
-	}); err != nil {
-		return files, err
-	} else if _, err = yf.Write(enc); err != nil {
-		return files, err
-	}
-
 	return files, nil
 }
