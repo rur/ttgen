@@ -68,7 +68,7 @@ func WriteRoutesFile(dir string, fileName string, pageDef *generate.PartialDef, 
 		}
 		if pageDef.Method == "" {
 			route.Method = "GET"
-		} else if pageDef.Method == "?" {
+		} else if pageDef.Method == "any" {
 			route.Method = ""
 		} else {
 			route.Method = strings.ToUpper(pageDef.Method)
