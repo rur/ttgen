@@ -41,20 +41,25 @@ func main() {
 	}
 	var sitemap generate.Sitemap
 	var decoder generate.SitemapDecoder
+	var inFormat string
 	switch path.Ext(config) {
 	case ".yml":
 		decoder = generate.LoadYAMLSitemap
+		inFormat = "YAML"
 	case ".yaml":
 		decoder = generate.LoadYAMLSitemap
+		inFormat = "YAML"
 	case ".tml":
 		decoder = generate.LoadTOMLSitemap
+		inFormat = "TOML"
 	case ".toml":
 		decoder = generate.LoadTOMLSitemap
+		inFormat = "TOML"
 	default:
 		log.Fatalf("Unknown file extenstion for sitemap file %s", config)
 	}
 	if sitemap, err = decoder(data); err != nil {
-		fmt.Printf("Error parsing sitemap YAML: %v", err)
+		fmt.Printf("Error parsing sitemap %s: %v", inFormat, err)
 		return
 	}
 
