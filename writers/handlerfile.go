@@ -67,7 +67,7 @@ func WriteHandlerFile(dir string, pageDef *generate.PartialDef, namespace, pageN
 		}
 
 		for _, partial := range block.partials {
-			blockHandlers, err := processHandlersDef(block.ident, &partial)
+			blockHandlers, err := processHandlersDef(block.ident, partial)
 			if err != nil {
 				return fileName, err
 			}
@@ -133,7 +133,7 @@ func processHandlersDef(blockName string, def *generate.PartialDef) ([]*handlerD
 		}
 
 		for _, partial := range block.partials {
-			blockHandlers, err := processHandlersDef(block.ident, &partial)
+			blockHandlers, err := processHandlersDef(block.ident, partial)
 			if err != nil {
 				return handlers, err
 			}

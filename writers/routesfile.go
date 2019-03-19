@@ -5,6 +5,7 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
+	textTemplate "text/template"
 
 	generate "github.com/rur/ttgen"
 )
@@ -14,15 +15,14 @@ type pageBlockData struct {
 }
 
 type pageEntryData struct {
-	Assignment      string
-	Name            string
-	Extends         string
-	Block           string
-	Handler         string
-	OverrideHandler bool
-	Type            string
-	Template        string
-	Path            string
+	Assignment string
+	Name       string
+	Extends    string
+	Block      string
+	Handler    string
+	Type       string
+	Template   string
+	Path       string
 }
 
 type pageRouteData struct {
@@ -40,22 +40,20 @@ type pageTemplateData struct {
 }
 
 type pageData struct {
-	Namespace       string
-	Name            string
-	Template        string
-	Handler         string
-	OverrideHandler bool
-	Blocks          []pageBlockData
-	Entries         []pageEntryData
-	Routes          []pageRouteData
+	Namespace string
+	Name      string
+	Template  string
+	Handler   string
+	Blocks    []pageBlockData
+	Entries   []pageEntryData
+	Routes    []pageRouteData
 }
 
-func WriteRoutesFile(dir string, pageDef *generate.PartialDef, namespace string, pageName string) (string, error) {
-	fileName := "routes.go"
+func WriteRoutesFile(dir string, fileName string, pageDef *generate.PartialDef, namespace string, pageName string, overrideTempl string) (string, error) {
 	filePath := filepath.Join(dir, "routes.go")
 	sf, err := os.Create(filePath)
 	if err != nil {
-		return "", err
+		return fileName, err
 	}
 	defer sf.Close()
 
@@ -68,8 +66,11 @@ func WriteRoutesFile(dir string, pageDef *generate.PartialDef, namespace string,
 			Type:      "Page",
 			Includes:  append([]string{}, pageDef.Includes...),
 		}
+
 		if pageDef.Method == "" {
 			route.Method = "GET"
+		} else if pageDef.Method == "any" {
+			route.Method = ""
 		} else {
 			route.Method = strings.ToUpper(pageDef.Method)
 		}
@@ -93,12 +94,12 @@ func WriteRoutesFile(dir string, pageDef *generate.PartialDef, namespace string,
 				"pageView",
 				block.name,
 				[]string{pageDef.Name, partial.Name},
-				&partial,
+				partial,
 				filepath.Join("page", pageName, "templates", block.ident),
 				block.name,
 			)
 			if err != nil {
-				return "", err
+				return fileName, err
 			}
 			entries = append(entries, blockEntries...)
 			routes = append(routes, blockRoutes...)
@@ -112,7 +113,7 @@ func WriteRoutesFile(dir string, pageDef *generate.PartialDef, namespace string,
 	}
 
 	if len(routes) == 0 {
-		return "", fmt.Errorf("Page '%s' does not have any routes!", pageName)
+		return fileName, fmt.Errorf("Page '%s' does not have any routes!", pageName)
 	}
 
 	// process includes in routes by scanning entries for matching paths
@@ -128,14 +129,14 @@ func WriteRoutesFile(dir string, pageDef *generate.PartialDef, namespace string,
 				route.Includes[i] = entries[j].Name
 				entries[j].Assignment = entries[j].Name + " :="
 			} else {
-				return "", fmt.Errorf("Failed to match include path '%s' to a sub view entry for route '%s'", incl, route.Path)
+				return fileName, fmt.Errorf("Failed to match include path '%s' to a sub view entry for route '%s'", incl, route.Path)
 			}
 		}
 	}
 
 	handler := pageDef.Handler
 	if handler == "" {
-		handler = pageName + "PageHandler"
+		handler = fmt.Sprintf("cxt.Bind(%sPageHandler)", pageName)
 	}
 
 	template := pageDef.Template
@@ -144,22 +145,33 @@ func WriteRoutesFile(dir string, pageDef *generate.PartialDef, namespace string,
 	}
 
 	page := pageData{
-		Namespace:       namespace,
-		Name:            pageName,
-		Template:        template,
-		Handler:         handler,
-		OverrideHandler: pageDef.Handler != "",
-		Blocks:          blocks,
-		Entries:         entries,
-		Routes:          routes,
+		Namespace: namespace,
+		Name:      pageName,
+		Template:  template,
+		Handler:   handler,
+		Blocks:    blocks,
+		Entries:   entries,
+		Routes:    routes,
 	}
 
-	err = routesTemplate.Execute(sf, page)
-	if err != nil {
-		return fileName, err
+	pageDef.Template = template
+	pageDef.Handler = handler
+
+	if overrideTempl != "" {
+		// user override for outer template of routes page
+		master, err := textTemplate.New("override").Parse(overrideTempl)
+		if err != nil {
+			return fileName, err
+		}
+		if _, err := master.New("overlay").Parse(routesTempl); err != nil {
+			return fileName, err
+		}
+		err = master.ExecuteTemplate(sf, master.Name(), page)
+	} else {
+		err = routesTemplate.Execute(sf, page)
 	}
 
-	return fileName, nil
+	return fileName, err
 }
 
 func processEntries(extends, blockName string, names []string, def *generate.PartialDef, templatePath string, seen ...string) ([]pageEntryData, []pageRouteData, error) {
@@ -180,7 +192,7 @@ func processEntries(extends, blockName string, names []string, def *generate.Par
 
 	handler := def.Handler
 	if handler == "" {
-		handler = entryName + "Handler"
+		handler = fmt.Sprintf("cxt.Bind(%sHandler)", entryName)
 	}
 
 	template := def.Template
@@ -189,15 +201,17 @@ func processEntries(extends, blockName string, names []string, def *generate.Par
 	}
 
 	entry := pageEntryData{
-		Name:            entryName,
-		Extends:         extends,
-		Block:           blockName,
-		Handler:         handler,
-		OverrideHandler: def.Handler != "",
-		Type:            entryType,
-		Template:        template,
-		Path:            strings.Join(names, " > "),
+		Name:     entryName,
+		Extends:  extends,
+		Block:    blockName,
+		Handler:  handler,
+		Type:     entryType,
+		Template: template,
+		Path:     strings.Join(names, " > "),
 	}
+
+	def.Template = template
+	def.Handler = handler
 
 	// the assignment for an entry must be blanked if there are no routes or subviews
 	// assignment may be reinstated if this entry is used as an include for another route
@@ -222,6 +236,8 @@ func processEntries(extends, blockName string, names []string, def *generate.Par
 		}
 		if def.Method == "" {
 			route.Method = "GET"
+		} else if def.Method == "any" {
+			route.Method = ""
 		} else {
 			route.Method = strings.ToUpper(def.Method)
 		}
@@ -248,7 +264,7 @@ func processEntries(extends, blockName string, names []string, def *generate.Par
 				entry.Name,
 				block.name,
 				append(names, partial.Name),
-				&partial,
+				partial,
 				filepath.Join(templatePath, block.ident),
 				append(seen, block.name)...,
 			)

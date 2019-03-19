@@ -1,0 +1,70 @@
+namespace: github.com/rur/userrolesadmin
+pages:
+- page: user
+  name: user
+  handler: cxt.BindTT(userPageHandler)
+  template: page/user/templates/index.html.tmpl
+  doc: View and edit user roles
+  blocks:
+    nav:
+    - name: nav
+      default: true
+      handler: cxt.BindTT(navHandler)
+      template: page/user/templates/nav/nav.html.tmpl
+    - name: nav2
+      handler: cxt.BindTT(nav2Handler)
+      template: page/user/templates/nav/nav2.html.tmpl
+    wrapper:
+    - name: all-users
+      default: true
+      path: /users
+      handler: cxt.BindTT(user.Bind(allUsersHandler))
+      template: page/user/templates/wrapper/allUsers.html.tmpl
+    - name: base
+      path: /users/{user}
+      handler: cxt.BindTT(user.Bind(baseHandler))
+      template: page/user/templates/wrapper/base.html.tmpl
+      doc: Display user information
+      blocks:
+        content:
+        - name: roles-list
+          default: true
+          path: /users/{user}/roles
+          includes:
+          - user > nav
+          handler: cxt.BindTT(user.Bind(rolesListHandler))
+          template: page/user/templates/wrapper/content/rolesList.html.tmpl
+        - name: roles-edit
+          path: /users/{user}/edit
+          includes:
+          - user > nav2
+          handler: cxt.BindTT(user.Bind(rolesEditHandler))
+          template: page/user/templates/wrapper/content/rolesEdit.html.tmpl
+        - name: assign-roles
+          path: /users/{user}/assign
+          includes:
+          - user > nav2
+          handler: cxt.BindTT(user.Bind(assignRolesHandler))
+          template: page/user/templates/wrapper/content/assignRoles.html.tmpl
+        - name: find-roles-results
+          fragment: true
+          path: /users/{user}/find-role-roles
+          includes:
+          - user > nav
+          handler: cxt.BindTT(user.Bind(findRolesResultsHandler))
+          template: page/user/templates/wrapper/content/findRolesResults.html.tmpl
+        - name: assign-role-complete
+          fragment: true
+          path: /users/{user}/assign-roles-complete
+          includes:
+          - user > nav2
+          handler: cxt.BindTT(user.Bind(assignRoleCompleteHandler))
+          template: page/user/templates/wrapper/content/assignRoleComplete.html.tmpl
+        - name: revoke-role-complete
+          fragment: true
+          path: /users/{user}/revoke-roles-complete
+          includes:
+          - user > nav
+          handler: cxt.BindTT(user.Bind(revokeRoleCompleteHandler))
+          template: page/user/templates/wrapper/content/revokeRoleComplete.html.tmpl
+  uri: /users

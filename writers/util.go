@@ -19,10 +19,10 @@ func SanitizeName(name string) (string, error) {
 type blockDef struct {
 	name     string
 	ident    string
-	partials []generate.PartialDef
+	partials []*generate.PartialDef
 }
 
-func iterateSortedBlocks(blocks map[string][]generate.PartialDef) ([]blockDef, error) {
+func iterateSortedBlocks(blocks map[string][]*generate.PartialDef) ([]blockDef, error) {
 	output := make([]blockDef, 0, len(blocks))
 	var keys []string
 	for k := range blocks {

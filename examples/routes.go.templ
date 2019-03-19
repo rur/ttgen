@@ -1,0 +1,11 @@
+package user
+
+import (
+	"github.com/rur/treetop"
+	"github.com/rur/userrolesadmin/page"
+)
+
+func Routes(cxt page.Context, m page.Mux, renderer *treetop.Renderer) {
+	// edit routes here
+	{{ block "routes" . }}{{ end }}
+}
