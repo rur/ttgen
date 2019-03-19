@@ -28,6 +28,8 @@ definition. The files will be created in a temporary directory. The generated fo
 
 `--temp-dir DIR` Specify a directory to use as tmp for the purpose of generating files.
 
+`--out-format FORMAT` Specify an out format for the routemap files. 'YAML' by default but 'TOML' is also supported.
+
 ### `ttroutes` Command
 
 Generate a page routes.go file given a 'routemap' YAML file. This is the same format as the
