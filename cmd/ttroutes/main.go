@@ -6,6 +6,7 @@ import (
 	"log"
 	"os"
 	"os/exec"
+	"path"
 	"path/filepath"
 	"strings"
 	"time"
@@ -15,8 +16,8 @@ import (
 )
 
 var generateUsage = `
-Usage: ttroutes ./routemap.yml ./routes.go.templ ./routes.go
-Write a routes file from routemap yaml. This will overwrite an existing file at the destination
+Usage: ttroutes ./routemap.toml ./routes.go.templ ./routes.go
+Write a routes file from routemap. This will overwrite an existing file at the destination
 
 
 `
@@ -37,16 +38,30 @@ func main() {
 		fmt.Printf(generateUsage)
 		return
 	}
-	yamlPath := os.Args[1]
+	sitemapFilePath := os.Args[1]
 
-	data, err := ioutil.ReadFile(yamlPath)
+	data, err := ioutil.ReadFile(sitemapFilePath)
 	if err != nil {
 		fmt.Printf("Error loading routemap file: %v", err)
 		return
 	}
-	routemap, err := generate.LoadSitemap(data)
+	var routemap generate.Sitemap
+	var decoder generate.SitemapDecoder
+	switch path.Ext(sitemapFilePath) {
+	case ".yml":
+		decoder = generate.LoadYAMLSitemap
+	case ".yaml":
+		decoder = generate.LoadYAMLSitemap
+	case ".tml":
+		decoder = generate.LoadTOMLSitemap
+	case ".toml":
+		decoder = generate.LoadTOMLSitemap
+	default:
+		log.Fatalf("Unknown file extenstion for sitemap file %s", sitemapFilePath)
+	}
+	routemap, err = decoder(data)
 	if err != nil {
-		fmt.Printf("Error parsing routemap YAML: %v", err)
+		fmt.Printf("Error parsing routemap: %v", err)
 		return
 	}
 
@@ -59,7 +74,7 @@ func main() {
 	// prefix routes template with generator heading
 	routesTempl := fmt.Sprintf(
 		genheader,
-		yamlPath,
+		sitemapFilePath,
 		templPath,
 		time.Now().Format("Mon Jan _2 15:04:05 2006"),
 		string(templData),
@@ -72,7 +87,10 @@ func main() {
 	destDir := filepath.Dir(destPath)
 	destFile := filepath.Base(destPath)
 
-	for _, def := range routemap.Pages {
+	if len(routemap.Pages) == 0 {
+		log.Fatalln("Routemap file does not have any pages")
+	} else {
+		def := routemap.Pages[0]
 		pageName, err := writers.SanitizeName(def.Page)
 		if err != nil {
 			log.Fatalf("Invalid page name '%s': %s", def.Page, err)
@@ -83,8 +101,6 @@ func main() {
 			log.Fatalf("Error creating routes.go file for '%s'. %s", def.Page, err)
 			return
 		}
-
-		break // only load the first page
 	}
 	if err != nil {
 		log.Fatalf("Treetop: Failed to build routes.go for routemap %s\n Error: %s\n", destPath, err.Error())

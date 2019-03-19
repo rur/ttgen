@@ -23,6 +23,7 @@ By default the path to the new directory will be printed to stdout.
 FLAGS:
 --human	Human readable output
 --temp-dir [DIRECTORY_PATH]	Path to directory that should be used as 'temp'
+--out-format [FORMAT] output routemap in specified format, {yaml|toml}
 
 `
 
@@ -32,21 +33,36 @@ func main() {
 		return
 	}
 	config := os.Args[1]
-
-	data, err := ioutil.ReadFile(config)
-	if err != nil {
+	var data []byte
+	var err error
+	if data, err = ioutil.ReadFile(config); err != nil {
 		fmt.Printf("Error loading sitemap file: %v", err)
 		return
 	}
-	sitemap, err := generate.LoadSitemap(data)
-	if err != nil {
+	var sitemap generate.Sitemap
+	var decoder generate.SitemapDecoder
+	switch path.Ext(config) {
+	case ".yml":
+		decoder = generate.LoadYAMLSitemap
+	case ".yaml":
+		decoder = generate.LoadYAMLSitemap
+	case ".tml":
+		decoder = generate.LoadTOMLSitemap
+	case ".toml":
+		decoder = generate.LoadTOMLSitemap
+	default:
+		log.Fatalf("Unknown file extenstion for sitemap file %s", config)
+	}
+	if sitemap, err = decoder(data); err != nil {
 		fmt.Printf("Error parsing sitemap YAML: %v", err)
 		return
 	}
 
+	// cheap and cheerful arg parsing
 	human := false
 	skip := 0
 	tmpDir := ""
+	outFormat := "yaml"
 	for i, arg := range os.Args[2:] {
 		if skip > 0 {
 			skip = skip - 1
@@ -56,10 +72,21 @@ func main() {
 		} else if arg == "--temp-dir" {
 			tmpDir = os.Args[i+3]
 			skip = 1
+		} else if arg == "--out-format" {
+			outFormat = os.Args[i+3]
+			skip = 1
 		} else {
-			fmt.Printf("Unknown flag '%s'\n\n%s", arg, generateUsage)
-			return
+			log.Fatalf("Unknown flag '%s'\n\n%s", arg, generateUsage)
 		}
+	}
+	var encoder generate.SitemapEncoder
+	switch strings.ToLower(outFormat) {
+	case "yaml":
+		encoder = generate.EncodeYAMLSitemap
+	case "toml":
+		encoder = generate.EncodeTOMLSitemap
+	default:
+		log.Fatalf("Invalid out format '%s', expecting YAML or TOML", outFormat)
 	}
 
 	outfolder, err := ioutil.TempDir(tmpDir, "")
@@ -68,7 +95,7 @@ func main() {
 		return
 	}
 
-	createdFiles, err := generateAndWriteFiles(outfolder, sitemap)
+	createdFiles, err := generateAndWriteFiles(outfolder, sitemap, encoder)
 	if err != nil {
 		fmt.Printf("Treetop: Failed to build scaffold for sitemap %s\n Error: %s\n", config, err.Error())
 		if err := os.RemoveAll(outfolder); err != nil {
@@ -104,7 +131,7 @@ func main() {
 	}
 }
 
-func generateAndWriteFiles(outDir string, sitemap generate.Sitemap) ([]string, error) {
+func generateAndWriteFiles(outDir string, sitemap generate.Sitemap, encoder generate.SitemapEncoder) ([]string, error) {
 	var file string
 	var err error
 	created := make([]string, 0)
@@ -174,7 +201,7 @@ func generateAndWriteFiles(outDir string, sitemap generate.Sitemap) ([]string, e
 		}
 		created = append(created, path.Join("page", pageName, file))
 
-		files, err = writers.WriteRoutemapFiles(pageDir, &def, sitemap.Namespace, pageName)
+		files, err = writers.WriteRoutemapFiles(pageDir, &def, sitemap.Namespace, pageName, encoder)
 		if err != nil {
 			return created, fmt.Errorf("Error creating routemap files for '%s'. %s", def.Page, err)
 		}
