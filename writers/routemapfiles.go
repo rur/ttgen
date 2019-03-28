@@ -12,7 +12,7 @@ import (
 const genGoTempl = `
 package {{ .Pkg }}
 
-//go:generate ttroutes ./routemap.yml ./routes.go.templ ./routes.go
+//go:generate ttroutes ./{{ .RoutemapName }} ./routes.go.templ ./routes.go
 
 `
 
@@ -20,6 +20,7 @@ func WriteRoutemapFiles(dir string, pageDef *generate.PartialDef, namespace, pag
 	var files []string
 
 	templateName := "routes.go.templ"
+	var routemapName string
 	// now use routes template file to generate another template
 	if routesTemplateTemplate, err := text.New(templateName).Parse(routesTempl); err != nil {
 		return files, err
@@ -50,7 +51,7 @@ func WriteRoutemapFiles(dir string, pageDef *generate.PartialDef, namespace, pag
 	}); err != nil {
 		return files, err
 	} else {
-		routemapName := fmt.Sprintf("routemap%s", ext)
+		routemapName = fmt.Sprintf("routemap%s", ext)
 		routemapPath := filepath.Join(dir, routemapName)
 		yf, err := os.Create(routemapPath)
 		if err != nil {
@@ -76,8 +77,12 @@ func WriteRoutemapFiles(dir string, pageDef *generate.PartialDef, namespace, pag
 		}
 		files = append(files, genName)
 		defer genF.Close()
-		if err = genTemplate.Execute(genF, struct{ Pkg string }{
-			Pkg: pageName,
+		if err = genTemplate.Execute(genF, struct {
+			Pkg          string
+			RoutemapName string
+		}{
+			Pkg:          pageName,
+			RoutemapName: routemapName,
 		}); err != nil {
 			return files, err
 		}

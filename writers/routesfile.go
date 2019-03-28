@@ -50,13 +50,6 @@ type pageData struct {
 }
 
 func WriteRoutesFile(dir string, fileName string, pageDef *generate.PartialDef, namespace string, pageName string, overrideTempl string) (string, error) {
-	filePath := filepath.Join(dir, "routes.go")
-	sf, err := os.Create(filePath)
-	if err != nil {
-		return fileName, err
-	}
-	defer sf.Close()
-
 	var entries []pageEntryData
 	var routes []pageRouteData
 	if pageDef.Path != "" {
@@ -156,6 +149,13 @@ func WriteRoutesFile(dir string, fileName string, pageDef *generate.PartialDef, 
 
 	pageDef.Template = template
 	pageDef.Handler = handler
+
+	filePath := filepath.Join(dir, "routes.go")
+	sf, err := os.Create(filePath)
+	if err != nil {
+		return fileName, err
+	}
+	defer sf.Close()
 
 	if overrideTempl != "" {
 		// user override for outer template of routes page
