@@ -52,24 +52,6 @@ type pageData struct {
 func WriteRoutesFile(dir string, fileName string, pageDef *generate.PartialDef, namespace string, pageName string, overrideTempl string) (string, error) {
 	var entries []pageEntryData
 	var routes []pageRouteData
-	if pageDef.Path != "" {
-		route := pageRouteData{
-			Reference: "pageView",
-			Path:      strings.Trim(pageDef.Path, " "),
-			Type:      "Page",
-			Includes:  append([]string{}, pageDef.Includes...),
-		}
-
-		if pageDef.Method == "" {
-			route.Method = "GET"
-		} else if pageDef.Method == "any" {
-			route.Method = ""
-		} else {
-			route.Method = strings.ToUpper(pageDef.Method)
-		}
-		routes = append(routes, route)
-	}
-
 	blocks := make([]pageBlockData, 0, len(pageDef.Blocks))
 
 	sortedBlocks, err := iterateSortedBlocks(pageDef.Blocks)
@@ -103,6 +85,24 @@ func WriteRoutesFile(dir string, fileName string, pageDef *generate.PartialDef, 
 				})
 			}
 		}
+	}
+
+	if pageDef.Path != "" {
+		route := pageRouteData{
+			Reference: "pageView",
+			Path:      strings.Trim(pageDef.Path, " "),
+			Type:      "Page",
+			Includes:  append([]string{}, pageDef.Includes...),
+		}
+
+		if pageDef.Method == "" {
+			route.Method = "GET"
+		} else if pageDef.Method == "any" {
+			route.Method = ""
+		} else {
+			route.Method = strings.ToUpper(pageDef.Method)
+		}
+		routes = append(routes, route)
 	}
 
 	if len(routes) == 0 {
@@ -221,29 +221,6 @@ func processEntries(extends, blockName string, names []string, def *generate.Par
 		entry.Assignment = entryName + " :="
 	}
 
-	if def.Path != "" {
-		route := pageRouteData{
-			Reference: entryName,
-			Path:      strings.Trim(def.Path, " "),
-			Includes:  append([]string{}, def.Includes...),
-		}
-		if def.Fragment {
-			route.Type = "Fragment"
-		} else if def.FullPage {
-			route.Type = "Page"
-		} else {
-			route.Type = "Partial"
-		}
-		if def.Method == "" {
-			route.Method = "GET"
-		} else if def.Method == "any" {
-			route.Method = ""
-		} else {
-			route.Method = strings.ToUpper(def.Method)
-		}
-		routes = append(routes, route)
-	}
-
 	entries = append(entries, entry)
 
 	sortedBlocks, err := iterateSortedBlocks(def.Blocks)
@@ -274,6 +251,29 @@ func processEntries(extends, blockName string, names []string, def *generate.Par
 			entries = append(entries, blockEntries...)
 			routes = append(routes, blockRoutes...)
 		}
+	}
+
+	if def.Path != "" {
+		route := pageRouteData{
+			Reference: entryName,
+			Path:      strings.Trim(def.Path, " "),
+			Includes:  append([]string{}, def.Includes...),
+		}
+		if def.Fragment {
+			route.Type = "Fragment"
+		} else if def.FullPage {
+			route.Type = "Page"
+		} else {
+			route.Type = "Partial"
+		}
+		if def.Method == "" {
+			route.Method = "GET"
+		} else if def.Method == "any" {
+			route.Method = ""
+		} else {
+			route.Method = strings.ToUpper(def.Method)
+		}
+		routes = append(routes, route)
 	}
 
 	return entries, routes, nil
