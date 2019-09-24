@@ -97,7 +97,7 @@ func main() {
 	outfolder, err := ioutil.TempDir(tmpDir, "")
 	if err != nil {
 		fmt.Printf("Error creating temp dir: %s", err)
-		return
+		log.Fatalf("Treetop Page Generate FAILED")
 	}
 
 	createdFiles, err := generateAndWriteFiles(outfolder, sitemap, encoder)
@@ -106,7 +106,7 @@ func main() {
 		if err := os.RemoveAll(outfolder); err != nil {
 			fmt.Printf("Scaffold failed but temp directory was not cleaned up: %s\n", err.Error())
 		}
-		return
+		log.Fatalf("Treetop Page Generate FAILED")
 	} else {
 		// attempt to format the go code
 		// this should not cause the generate command to fail if go fmt fails for some reason

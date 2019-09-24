@@ -137,27 +137,27 @@ func processViewDef(name string, def *generate.PartialDef, templatePath string) 
 	for _, block := range sortedBlocks {
 
 		entries = append(entries, pageEntryData{
-			Name: block.name,
+			Name: block.Name,
 			Type: "Spacer",
 		})
 
-		for i, partial := range block.partials {
+		for i, partial := range block.Partials {
 			blockEntries, blockRoutes, err := processEntries(
 				view.Assignment,
-				block.name,
+				block.Name,
 				[]string{def.Name, partial.Name},
 				partial,
-				filepath.Join(templatePath, block.ident),
-				block.name,
+				filepath.Join(templatePath, block.Ident),
+				block.Name,
 			)
 			if err != nil {
 				return view, entries, routes, err
 			}
 			entries = append(entries, blockEntries...)
 			routes = append(routes, blockRoutes...)
-			if len(blockEntries) > 1 && i < len(block.partials)-1 {
+			if len(blockEntries) > 1 && i < len(block.Partials)-1 {
 				entries = append(entries, pageEntryData{
-					Name: block.name,
+					Name: block.Name,
 					Type: "Spacer",
 				})
 			}
@@ -252,22 +252,22 @@ func processEntries(extends, blockName string, names []string, def *generate.Par
 		return entries, routes, err
 	}
 	for _, block := range sortedBlocks {
-		if len(block.partials) == 0 {
+		if len(block.Partials) == 0 {
 			continue
 		}
 		entries = append(entries, pageEntryData{
-			Name: strings.Join(append(seen, block.name), " -> "),
+			Name: strings.Join(append(seen, block.Name), " -> "),
 			Type: "Spacer",
 		})
 
-		for _, partial := range block.partials {
+		for _, partial := range block.Partials {
 			blockEntries, blockRoutes, err := processEntries(
 				entry.Name,
-				block.name,
+				block.Name,
 				append(names, partial.Name),
 				partial,
-				filepath.Join(templatePath, block.ident),
-				append(seen, block.name)...,
+				filepath.Join(templatePath, block.Ident),
+				append(seen, block.Name)...,
 			)
 			if err != nil {
 				return entries, routes, err
