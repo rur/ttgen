@@ -43,3 +43,17 @@ func iterateSortedBlocks(blocks map[string][]*generate.PartialDef) ([]blockDef, 
 	}
 	return output, nil
 }
+
+// produce a slice of views sorted lex' by their view name
+func IterateSortedViews(views map[string]*generate.PartialDef) []*generate.PartialDef {
+	output := make([]*generate.PartialDef, 0, len(views))
+	var keys []string
+	for k := range views {
+		keys = append(keys, k)
+	}
+	sort.Strings(keys)
+	for _, k := range keys {
+		output = append(output, views[k])
+	}
+	return output
+}

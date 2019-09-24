@@ -44,9 +44,9 @@ type indexData struct {
 	Blocks    []*htmlBlockData
 }
 
-func WriteIndexFile(dir string, pageDef *generate.PartialDef, otherPages []generate.PartialDef) (string, error) {
-	fileName := "index.html.tmpl"
-	filePath := filepath.Join(dir, "index.html.tmpl")
+func WriteIndexFile(dir string, view *generate.PartialDef, otherPages map[string]*generate.PartialDef) (string, error) {
+	fileName := fmt.Sprintf("%s.html.tmpl", view.Name)
+	filePath := filepath.Join(dir, fileName)
 	sf, err := os.Create(filePath)
 	if err != nil {
 		return fileName, err
@@ -59,12 +59,12 @@ func WriteIndexFile(dir string, pageDef *generate.PartialDef, otherPages []gener
 			links = append(links, &indexSiteLinksData{
 				URI:    other.URI,
 				Label:  other.Name,
-				Active: other.URI != pageDef.URI,
+				Active: other.URI != view.URI,
 			})
 		}
 	}
 
-	blockList, err := iterateSortedBlocks(pageDef.Blocks)
+	blockList, err := iterateSortedBlocks(view.Blocks)
 	if err != nil {
 		return fileName, err
 	}
@@ -88,7 +88,7 @@ func WriteIndexFile(dir string, pageDef *generate.PartialDef, otherPages []gener
 	}
 
 	err = indexTemplate.Execute(sf, indexData{
-		Title:     pageDef.Name,
+		Title:     view.Name,
 		SiteLinks: links,
 		Blocks:    blocks,
 	})

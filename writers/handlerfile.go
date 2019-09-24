@@ -24,42 +24,65 @@ type handlerData struct {
 }
 
 type handlersdata struct {
-	Namespace string
-	PageName  string
-	Handlers  []*handlerData
+	Namespace     string
+	PageName      string
+	ViewHandlers  []*handlerData
+	BlockHandlers []*handlerData
 }
 
-func WriteHandlerFile(dir string, pageDef *generate.PartialDef, namespace, pageName string) (string, error) {
+func WriteHandlerFile(dir string, views map[string]*generate.PartialDef, namespace, pageName string) (string, error) {
 	fileName := "handlers.go"
 	filePath := filepath.Join(dir, "handlers.go")
+	data := handlersdata{
+		Namespace: namespace,
+		PageName:  pageName,
+	}
+	for _, view := range IterateSortedViews(views) {
+		if viewHandler, blockHandlers, err := processViewHandlers(view, pageName); err != nil {
+			return "", err
+		} else {
+			data.ViewHandlers = append(data.ViewHandlers, viewHandler)
+			data.BlockHandlers = append(data.BlockHandlers, blockHandlers...)
+		}
+	}
+
 	sf, err := os.Create(filePath)
 	if err != nil {
-		return fileName, err
+		return "", err
 	}
 	defer sf.Close()
 
-	var handlers []*handlerData
-	var pageHandler *handlerData
-	if pageDef.Handler == "" {
-		// base page handler
-		pageHandler = &handlerData{
-			Info:       pageName,
-			Doc:        pageDef.Doc,
-			Type:       "(page)",
-			Blocks:     make([]*handlerBlockData, 0, len(pageDef.Blocks)),
-			Identifier: pageName + "PageHandler",
-		}
-		handlers = append(handlers, pageHandler)
-	}
-
-	blocks, err := iterateSortedBlocks(pageDef.Blocks)
+	err = handlerTemplate.Execute(sf, data)
 	if err != nil {
 		return fileName, err
 	}
 
+	return fileName, nil
+}
+
+func processViewHandlers(view *generate.PartialDef, pageName string) (*handlerData, []*handlerData, error) {
+	var viewHandler *handlerData
+
+	if view.Handler == "" {
+		// base page handler
+		viewHandler = &handlerData{
+			Info:       pageName,
+			Doc:        view.Doc,
+			Type:       "(page)",
+			Blocks:     make([]*handlerBlockData, 0, len(view.Blocks)),
+			Identifier: pageName + "PageHandler",
+		}
+	}
+
+	blocks, err := iterateSortedBlocks(view.Blocks)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	var handlers []*handlerData
 	for _, block := range blocks {
-		if pageHandler != nil {
-			pageHandler.Blocks = append(pageHandler.Blocks, &handlerBlockData{
+		if viewHandler != nil {
+			viewHandler.Blocks = append(viewHandler.Blocks, &handlerBlockData{
 				Identifier: block.ident + "Data",
 				Name:       block.name,
 				FieldName:  generate.ValidPublicIdentifier(block.name),
@@ -69,22 +92,12 @@ func WriteHandlerFile(dir string, pageDef *generate.PartialDef, namespace, pageN
 		for _, partial := range block.partials {
 			blockHandlers, err := processHandlersDef(block.ident, partial)
 			if err != nil {
-				return fileName, err
+				return nil, nil, err
 			}
 			handlers = append(handlers, blockHandlers...)
 		}
 	}
-
-	err = handlerTemplate.Execute(sf, handlersdata{
-		Namespace: namespace,
-		PageName:  pageName,
-		Handlers:  handlers,
-	})
-	if err != nil {
-		return fileName, err
-	}
-
-	return fileName, nil
+	return viewHandler, handlers, nil
 }
 
 func processHandlersDef(blockName string, def *generate.PartialDef) ([]*handlerData, error) {
