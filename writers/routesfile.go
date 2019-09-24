@@ -54,9 +54,9 @@ func WriteRoutesFile(dir string, fileName string, views map[string]*generate.Par
 		Name:      pageName,
 	}
 
-	for name, viewDef := range views {
+	for _, viewDef := range IterateSortedViews(views) {
 		view, entries, routes, vEr := processViewDef(
-			name,
+			viewDef.Name,
 			viewDef,
 			filepath.Join("page", pageName, "templates"),
 		)
