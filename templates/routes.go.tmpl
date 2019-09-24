@@ -7,10 +7,12 @@ import (
 
 func Routes(cxt page.Context, m page.Mux, renderer *treetop.Renderer) {
 	{{ block "routes" . }}
-	pageView := renderer.NewView(
-		"{{ .Template }}",
-		{{ .Handler }},
+	{{ range $index, $view := .Views }}
+	{{ $view.Assignment }} := renderer.NewView(
+		"{{ $view.Template }}",
+		{{ $view.Handler }},
 	)
+	{{ end }}
 	{{ range $index, $entry := .Entries -}}
 	{{ if eq $entry.Type "DefaultSubView" -}}
 	{{ $entry.Assignment }} {{ $entry.Extends }}.DefaultSubView(

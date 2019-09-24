@@ -4,21 +4,20 @@ import (
 	"gopkg.in/yaml.v2"
 )
 
-func LoadYAMLSitemap(data []byte) (Sitemap, error) {
-	var config Sitemap
+func LoadYAMLRouteMap(data []byte) (RouteMap, error) {
+	var config RouteMap
 	if err := yaml.Unmarshal(data, &config); err != nil {
 		return config, err
 	}
-	for i := 0; i < len(config.Pages); i++ {
-		if config.Pages[i].Page == "" {
-			config.Pages[i].Page = config.Pages[i].Name
-		}
+
+	for name, def := range config.Views {
+		def.Name = name
 	}
 
 	return config, nil
 }
 
-func EncodeYAMLSitemap(s Sitemap) ([]byte, string, error) {
+func EncodeYAMLRouteMap(s RouteMap) ([]byte, string, error) {
 	d, err := yaml.Marshal(&s)
 	return d, ".yaml", err
 }

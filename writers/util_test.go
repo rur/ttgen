@@ -54,7 +54,7 @@ func TestSanitizeName(t *testing.T) {
 
 func Test_iterateSortedBlocks(t *testing.T) {
 	type args struct {
-		blocks map[string][]generate.PartialDef
+		blocks map[string][]*generate.PartialDef
 	}
 	tests := []struct {
 		name    string
@@ -65,18 +65,18 @@ func Test_iterateSortedBlocks(t *testing.T) {
 		{
 			name: "basic",
 			args: args{
-				map[string][]generate.PartialDef{},
+				map[string][]*generate.PartialDef{},
 			},
 			want:    []string{},
 			wantErr: false,
 		}, {
 			name: "sort three blocks",
 			args: args{
-				map[string][]generate.PartialDef{
-					"C": []generate.PartialDef{generate.PartialDef{Name: "third"}},
-					"A": []generate.PartialDef{generate.PartialDef{Name: "first"}},
-					"Z": []generate.PartialDef{generate.PartialDef{Name: "last"}},
-					"B": []generate.PartialDef{generate.PartialDef{Name: "second"}},
+				map[string][]*generate.PartialDef{
+					"C": []*generate.PartialDef{&generate.PartialDef{Name: "third"}},
+					"A": []*generate.PartialDef{&generate.PartialDef{Name: "first"}},
+					"Z": []*generate.PartialDef{&generate.PartialDef{Name: "last"}},
+					"B": []*generate.PartialDef{&generate.PartialDef{Name: "second"}},
 				},
 			},
 			want:    []string{"A", "B", "C", "Z"},

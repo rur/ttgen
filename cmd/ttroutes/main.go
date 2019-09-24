@@ -38,43 +38,41 @@ func main() {
 		fmt.Printf(generateUsage)
 		return
 	}
-	sitemapFilePath := os.Args[1]
+	routemapFilePath := os.Args[1]
 
-	data, err := ioutil.ReadFile(sitemapFilePath)
+	data, err := ioutil.ReadFile(routemapFilePath)
 	if err != nil {
 		fmt.Printf("Error loading routemap file: %v", err)
 		return
 	}
-	var routemap generate.Sitemap
-	var decoder generate.SitemapDecoder
-	switch path.Ext(sitemapFilePath) {
+	var routemap generate.RouteMap
+	var decoder generate.RouteMapDecoder
+	switch path.Ext(routemapFilePath) {
 	case ".yml":
-		decoder = generate.LoadYAMLSitemap
+		decoder = generate.LoadYAMLRouteMap
 	case ".yaml":
-		decoder = generate.LoadYAMLSitemap
+		decoder = generate.LoadYAMLRouteMap
 	case ".tml":
-		decoder = generate.LoadTOMLSitemap
+		decoder = generate.LoadTOMLRouteMap
 	case ".toml":
-		decoder = generate.LoadTOMLSitemap
+		decoder = generate.LoadTOMLRouteMap
 	default:
-		log.Fatalf("Unknown file extenstion for sitemap file %s", sitemapFilePath)
+		log.Fatalf("Unknown file extension for routemap file %s", routemapFilePath)
 	}
 	routemap, err = decoder(data)
 	if err != nil {
-		fmt.Printf("Error parsing routemap: %v", err)
-		return
+		log.Fatalf("Error parsing routemap: %v", err)
 	}
 
 	templPath := os.Args[2]
 	templData, err := ioutil.ReadFile(templPath)
 	if err != nil {
-		fmt.Printf("Error loading routes template file: %v", err)
-		return
+		log.Fatalf("Error loading routes template file: %v", err)
 	}
 	// prefix routes template with generator heading
 	routesTempl := fmt.Sprintf(
 		genheader,
-		sitemapFilePath,
+		routemapFilePath,
 		templPath,
 		time.Now().Format("Mon Jan _2 15:04:05 2006"),
 		string(templData),
@@ -87,39 +85,35 @@ func main() {
 	destDir := filepath.Dir(destPath)
 	destFile := filepath.Base(destPath)
 
-	if len(routemap.Pages) == 0 {
-		log.Fatalln("Routemap file does not have any pages")
-	} else {
-		def := routemap.Pages[0]
-		pageName, err := writers.SanitizeName(def.Page)
-		if err != nil {
-			log.Fatalf("Invalid page name '%s': %s", def.Page, err)
-		}
-
-		_, err = writers.WriteRoutesFile(destDir, destFile, &def, routemap.Namespace, pageName, routesTempl)
-		if err != nil {
-			log.Fatalf("Error creating routes.go file for '%s'. %s", def.Page, err)
-			return
-		}
+	if len(routemap.Views) == 0 {
+		log.Fatalln("Routemap file does not have any views")
 	}
+
+	pageName, err := writers.SanitizeName(routemap.Page)
 	if err != nil {
-		log.Fatalf("Treetop: Failed to build routes.go for routemap %s\n Error: %s\n", destPath, err.Error())
+		log.Fatalf("Invalid page name '%s': %s", routemap.Page, err)
 		return
-	} else {
-		// attempt to format the go code
-		// this should not cause the generate command to fail if go fmt fails for some reason
-		var fmtError []string
-
-		cmd := exec.Command("go", "fmt", destPath)
-		output, err := cmd.CombinedOutput()
-		if err != nil {
-			fmtError = append(fmtError, fmt.Sprintf("%s Error: %s\nOutput: %s", destPath, err, string(output)))
-		}
-		if len(fmtError) > 0 {
-			log.Fatalf(
-				"Generated folder but `go fmt` failed for the following files:\n\t%s",
-				strings.Join(fmtError, "\n\t"),
-			)
-		}
 	}
+
+	_, err = writers.WriteRoutesFile(destDir, destFile, routemap.Views, routemap.Namespace, pageName, routesTempl)
+	if err != nil {
+		log.Fatalf("Error creating routes.go file for '%s'. %s", routemap.Page, err)
+		return
+	}
+	// attempt to format the go code
+	// this should not cause the generate command to fail if go fmt fails for some reason
+	var fmtError []string
+
+	cmd := exec.Command("go", "fmt", destPath)
+	output, err := cmd.CombinedOutput()
+	if err != nil {
+		fmtError = append(fmtError, fmt.Sprintf("%s Error: %s\nOutput: %s", destPath, err, string(output)))
+	}
+	if len(fmtError) > 0 {
+		log.Fatalf(
+			"Generated folder but `go fmt` failed for the following files:\n\t%s",
+			strings.Join(fmtError, "\n\t"),
+		)
+	}
+
 }

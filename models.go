@@ -1,12 +1,12 @@
 package ttgen
 
-type Sitemap struct {
-	Namespace string       `yaml:"namespace" toml:"namespace"`
-	Pages     []PartialDef `yaml:"pages" toml:"pages"`
+type RouteMap struct {
+	Namespace string                 `yaml:"namespace" toml:"namespace"`
+	Page      string                 `yaml:"page" toml:"page"`
+	Views     map[string]*PartialDef `yaml:"views" toml:"views"`
 }
 
 type PartialDef struct {
-	Page     string                   `yaml:"page,omitempty" toml:"page,omitempty"`         // The name of the page
 	Name     string                   `yaml:"name,omitempty" toml:"name,omitempty"`         // The unique name for this view
 	Fragment bool                     `yaml:"fragment,omitempty" toml:"fragment,omitempty"` // Is this a 'FragmetOnly' route
 	FullPage bool                     `yaml:"fullpage,omitempty" toml:"fullpage,omitempty"` // Is this a 'PageOnly' route
@@ -22,5 +22,5 @@ type PartialDef struct {
 	URI      string                   `yaml:"uri,omitempty" toml:"uri,omitempty"`           // the entrypoint URL for the top level view
 }
 
-type SitemapDecoder func([]byte) (Sitemap, error)
-type SitemapEncoder func(Sitemap) ([]byte, string, error)
+type RouteMapDecoder func([]byte) (RouteMap, error)
+type RouteMapEncoder func(RouteMap) ([]byte, string, error)

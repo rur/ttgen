@@ -5,6 +5,7 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
+	"text/template"
 	textTemplate "text/template"
 
 	generate "github.com/rur/ttgen"
@@ -42,23 +43,99 @@ type pageTemplateData struct {
 type pageData struct {
 	Namespace string
 	Name      string
-	Template  string
-	Handler   string
-	Blocks    []pageBlockData
+	Views     []pageEntryData
 	Entries   []pageEntryData
 	Routes    []pageRouteData
 }
 
-func WriteRoutesFile(dir string, fileName string, pageDef *generate.PartialDef, namespace string, pageName string, overrideTempl string) (string, error) {
-	var entries []pageEntryData
-	var routes []pageRouteData
-	blocks := make([]pageBlockData, 0, len(pageDef.Blocks))
+func WriteRoutesFile(dir string, fileName string, views map[string]*generate.PartialDef, namespace string, pageName string, overrideTempl string) (string, error) {
+	page := pageData{
+		Namespace: namespace,
+		Name:      pageName,
+	}
 
-	sortedBlocks, err := iterateSortedBlocks(pageDef.Blocks)
+	for name, viewDef := range views {
+		view, entries, routes, vEr := processViewDef(
+			name,
+			viewDef,
+			filepath.Join("page", pageName, "templates"),
+		)
+		if vEr != nil {
+			return "", vEr
+		}
+		page.Views = append(page.Views, view)
+		page.Entries = append(page.Entries, entries...)
+		page.Routes = append(page.Routes, routes...)
+	}
+
+	if len(page.Routes) == 0 {
+		return fileName, fmt.Errorf("Page '%s' does not have any routes!", pageName)
+	}
+
+	// process includes in routes by scanning entries for matching paths
+	pathMap := make(map[string]int)
+	for index, en := range page.Entries {
+		if en.Path != "" {
+			pathMap[en.Path] = index
+		}
+	}
+	for _, route := range page.Routes {
+		for i, incl := range route.Includes {
+			if j, ok := pathMap[incl]; ok {
+				route.Includes[i] = page.Entries[j].Name
+				page.Entries[j].Assignment = page.Entries[j].Name + " :="
+			} else {
+				return fileName, fmt.Errorf("Failed to match include path '%s' to a sub view entry for route '%s'", incl, route.Path)
+			}
+		}
+	}
+
+	filePath := filepath.Join(dir, "routes.go")
+	sf, err := os.Create(filePath)
 	if err != nil {
 		return fileName, err
 	}
+	defer sf.Close()
+
+	var tEr error
+	if overrideTempl != "" {
+		// user override for outer template of routes page
+		var master *template.Template
+		master, tEr = textTemplate.New("override").Parse(overrideTempl)
+		if tEr != nil {
+			return fileName, tEr
+		}
+		_, tEr = master.New("overlay").Parse(routesTempl)
+		if tEr != nil {
+			return fileName, tEr
+		}
+		tEr = master.ExecuteTemplate(sf, master.Name(), page)
+	} else {
+		tEr = routesTemplate.Execute(sf, page)
+	}
+
+	return fileName, tEr
+}
+
+func processViewDef(name string, def *generate.PartialDef, templatePath string) (pageEntryData, []pageEntryData, []pageRouteData, error) {
+	var (
+		view    pageEntryData
+		entries []pageEntryData
+		routes  []pageRouteData
+		err     error
+	)
+	if view.Assignment, err = SanitizeName(name); err != nil {
+		return view, entries, routes, err
+	} else {
+		view.Assignment = view.Assignment + "View"
+	}
+
+	sortedBlocks, err := iterateSortedBlocks(def.Blocks)
+	if err != nil {
+		return view, entries, routes, err
+	}
 	for _, block := range sortedBlocks {
+
 		entries = append(entries, pageEntryData{
 			Name: block.name,
 			Type: "Spacer",
@@ -66,15 +143,15 @@ func WriteRoutesFile(dir string, fileName string, pageDef *generate.PartialDef, 
 
 		for i, partial := range block.partials {
 			blockEntries, blockRoutes, err := processEntries(
-				"pageView",
+				view.Assignment,
 				block.name,
-				[]string{pageDef.Name, partial.Name},
+				[]string{def.Name, partial.Name},
 				partial,
-				filepath.Join("page", pageName, "templates", block.ident),
+				filepath.Join(templatePath, block.ident),
 				block.name,
 			)
 			if err != nil {
-				return fileName, err
+				return view, entries, routes, err
 			}
 			entries = append(entries, blockEntries...)
 			routes = append(routes, blockRoutes...)
@@ -87,91 +164,35 @@ func WriteRoutesFile(dir string, fileName string, pageDef *generate.PartialDef, 
 		}
 	}
 
-	if pageDef.Path != "" {
+	if def.Path != "" {
 		route := pageRouteData{
-			Reference: "pageView",
-			Path:      strings.Trim(pageDef.Path, " "),
+			Reference: view.Assignment,
+			Path:      strings.Trim(def.Path, " "),
 			Type:      "Page",
-			Includes:  append([]string{}, pageDef.Includes...),
+			Includes:  append([]string{}, def.Includes...),
 		}
 
-		if pageDef.Method == "" {
+		if def.Method == "" {
 			route.Method = "GET"
-		} else if pageDef.Method == "any" {
+		} else if def.Method == "any" {
 			route.Method = ""
 		} else {
-			route.Method = strings.ToUpper(pageDef.Method)
+			route.Method = strings.ToUpper(def.Method)
 		}
 		routes = append(routes, route)
 	}
 
-	if len(routes) == 0 {
-		return fileName, fmt.Errorf("Page '%s' does not have any routes!", pageName)
+	view.Handler = def.Handler
+	if view.Handler == "" {
+		view.Handler = fmt.Sprintf("cxt.Bind(%sHandler)", def.Name)
 	}
 
-	// process includes in routes by scanning entries for matching paths
-	pathMap := make(map[string]int)
-	for index, en := range entries {
-		if en.Path != "" {
-			pathMap[en.Path] = index
-		}
-	}
-	for _, route := range routes {
-		for i, incl := range route.Includes {
-			if j, ok := pathMap[incl]; ok {
-				route.Includes[i] = entries[j].Name
-				entries[j].Assignment = entries[j].Name + " :="
-			} else {
-				return fileName, fmt.Errorf("Failed to match include path '%s' to a sub view entry for route '%s'", incl, route.Path)
-			}
-		}
+	view.Template = def.Template
+	if view.Template == "" {
+		view.Template = filepath.Join(templatePath, fmt.Sprintf("%s.html.tmpl", def.Name))
 	}
 
-	handler := pageDef.Handler
-	if handler == "" {
-		handler = fmt.Sprintf("cxt.Bind(%sPageHandler)", pageName)
-	}
-
-	template := pageDef.Template
-	if template == "" {
-		template = filepath.Join("page", pageName, "templates", "index.html.tmpl")
-	}
-
-	page := pageData{
-		Namespace: namespace,
-		Name:      pageName,
-		Template:  template,
-		Handler:   handler,
-		Blocks:    blocks,
-		Entries:   entries,
-		Routes:    routes,
-	}
-
-	pageDef.Template = template
-	pageDef.Handler = handler
-
-	filePath := filepath.Join(dir, "routes.go")
-	sf, err := os.Create(filePath)
-	if err != nil {
-		return fileName, err
-	}
-	defer sf.Close()
-
-	if overrideTempl != "" {
-		// user override for outer template of routes page
-		master, err := textTemplate.New("override").Parse(overrideTempl)
-		if err != nil {
-			return fileName, err
-		}
-		if _, err := master.New("overlay").Parse(routesTempl); err != nil {
-			return fileName, err
-		}
-		err = master.ExecuteTemplate(sf, master.Name(), page)
-	} else {
-		err = routesTemplate.Execute(sf, page)
-	}
-
-	return fileName, err
+	return view, entries, routes, err
 }
 
 func processEntries(extends, blockName string, names []string, def *generate.PartialDef, templatePath string, seen ...string) ([]pageEntryData, []pageRouteData, error) {
