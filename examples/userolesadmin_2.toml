@@ -11,9 +11,9 @@ page = "admin"
     [views.home.blocks]
 
       [[views.home.blocks.nav]]
-        name = "nav"
+        name = "home-nav"
         default = true
-        doc = "principle navigatio"
+        doc = "principle navigation"
         handler = "treetop.Constant(\"ok\")"
 
       [[views.home.blocks.wrapper]]
@@ -25,11 +25,11 @@ page = "admin"
         [views.home.blocks.wrapper.blocks]
 
           [[views.home.blocks.wrapper.blocks.landing-results]]
-            name = "user-search-results"
+            name = "home-user-search-results"
             path = "/user-search"
 
           [[views.home.blocks.wrapper.blocks.landing-results]]
-            name = "role-search-results"
+            name = "home-role-search-results"
             path = "/role-search"
 
   [views.history]
@@ -40,11 +40,11 @@ page = "admin"
     [views.history.blocks]
 
       [[views.history.blocks.nav]]
-        name = "nav"
+        name = "history-nav"
         default = true
 
       [[views.history.blocks.wrapper]]
-        name = "search"
+        name = "history-search"
         default = true
         doc = "Allow history log to be searched"
         path = "/history"
@@ -57,11 +57,11 @@ page = "admin"
     [views.account.blocks]
 
       [[views.account.blocks.nav]]
-        name = "nav"
+        name = "account-nav"
         default = true
 
       [[views.account.blocks.wrapper]]
-        name = "landing"
+        name = "account-landing"
         default = true
         doc = "Administer admin user account"
         path = "/account"
@@ -74,11 +74,11 @@ page = "admin"
     [views.user.blocks]
 
       [[views.user.blocks.nav]]
-        name = "nav"
+        name = "user-nav"
         default = true
 
       [[views.user.blocks.nav]]
-        name = "nav2"
+        name = "user-nav2"
 
       [[views.user.blocks.wrapper]]
         name = "all-users"
@@ -86,7 +86,7 @@ page = "admin"
         path = "/users"
 
       [[views.user.blocks.wrapper]]
-        name = "base"
+        name = "user-info"
         doc = "Display user information"
         path = "/users/{user}"
 
@@ -94,37 +94,39 @@ page = "admin"
 
           [[views.user.blocks.wrapper.blocks.content]]
             default = true
-            name = "roles-list"
+            name = "user-roles-list"
             path = "/users/{user}/roles"
-            includes = [ "user > nav" ]
+            includes = [ "user > user-nav" ]
 
           [[views.user.blocks.wrapper.blocks.content]]
-            name = "roles-edit"
+            name = "user-roles-edit"
             path = "/users/{user}/edit"
-            includes = [ "user > nav2" ]
+            includes = [ "user > user-nav2" ]
 
           [[views.user.blocks.wrapper.blocks.content]]
-            name = "assign-roles"
+            name = "user-assign-roles"
             path = "/users/{user}/assign"
-            includes = [ "user > nav2" ]
+            includes = [ "user > user-nav2" ]
 
           [[views.user.blocks.wrapper.blocks.content]]
             fragment = true
-            name = "find-roles-results"
+            name = "user-find-roles-results"
             path = "/users/{user}/find-role-roles"
-            includes = [ "user > nav" ]
+            includes = [ "user > user-nav" ]
 
           [[views.user.blocks.wrapper.blocks.content]]
             fragment = true
-            name = "assign-role-complete"
-            path = "/users/{user}/assign-roles-complete"
-            includes = [ "user > nav2" ]
+            name = "user-assign-role-submit"
+            path = "/users/{user}/assign-roles-submit"
+            includes = [ "user > user-nav2" ]
+            method = "POST"
 
           [[views.user.blocks.wrapper.blocks.content]]
             fragment = true
-            name = "revoke-role-complete"
-            path = "/users/{user}/revoke-roles-complete"
-            includes = [ "user > nav" ]
+            name = "user-revoke-role-submit"
+            path = "/users/{user}/revoke-roles-submit"
+            includes = [ "user > user-nav" ]
+            method = "POST"
 
   [views.role]
     name = "role"
@@ -134,11 +136,11 @@ page = "admin"
     [views.role.blocks]
 
       [[views.role.blocks.nav]]
-        name = "nav"
+        name = "role-nav"
         default = true
 
       [[views.role.blocks.nav]]
-        name = "nav2"
+        name = "role-nav2"
 
       [[views.role.blocks.wrapper]]
         name = "all-roles"
@@ -147,7 +149,7 @@ page = "admin"
         path = "/roles"
 
       [[views.role.blocks.wrapper]]
-        name = "role"
+        name = "role-wrapper"
         path = "/roles/{role}"
         merge = "testing-gen-merge"
 
@@ -155,40 +157,40 @@ page = "admin"
 
           [[views.role.blocks.wrapper.blocks.content]]
             default = true
-            name = "users-list"
+            name = "role-users-list"
             path = "/roles/{role}/users"
-            includes = [ "role > nav" ]
+            includes = [ "role > role-nav" ]
 
           [[views.role.blocks.wrapper.blocks.content]]
-            name = "users-edit"
+            name = "role-users-edit"
             path = "/roles/{role}/edit"
-            includes = [ "role > nav2" ]
+            includes = [ "role > role-nav2" ]
 
           [[views.role.blocks.wrapper.blocks.content]]
-            name = "assign-users"
+            name = "role-assign-users"
             path = "/roles/{role}/assign"
-            includes = [ "role > nav" ]
+            includes = [ "role > role-nav" ]
 
           [[views.role.blocks.wrapper.blocks.content]]
             fragment = true
-            name = "assign-results-roles"
+            name = "role-assign-results-roles"
             path = "/roles/{role}/find-user-roles-results"
-            includes = [ "role > nav2" ]
+            includes = [ "role > role-nav2" ]
 
           [[views.role.blocks.wrapper.blocks.content]]
             fragment = true
-            name = "assign-results-users"
+            name = "role-assign-results-users"
             path = "/roles/{role}/find-users-results"
-            includes = [ "role > nav" ]
+            includes = [ "role > role-nav" ]
 
           [[views.role.blocks.wrapper.blocks.content]]
             fragment = true
-            name = "assign-role-complete"
+            name = "role-assign-role-complete"
             path = "/roles/{role}/assign-role-users-complete"
-            includes = [ "role > nav2" ]
+            includes = [ "role > role-nav2" ]
 
           [[views.role.blocks.wrapper.blocks.content]]
             fragment = true
-            name = "revoke-users-complete"
+            name = "role-revoke-users-complete"
             path = "/roles/{role}/assign-users-complete"
-            includes = [ "role > nav" ]
+            includes = [ "role > role-nav" ]

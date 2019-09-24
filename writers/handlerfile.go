@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"strings"
 
 	generate "github.com/rur/ttgen"
 )
@@ -21,6 +22,7 @@ type handlerData struct {
 	Extends    string
 	Blocks     []*handlerBlockData
 	Identifier string
+	Method     string
 }
 
 type handlersdata struct {
@@ -64,13 +66,23 @@ func processViewHandlers(view *generate.PartialDef, pageName string) (*handlerDa
 	var viewHandler *handlerData
 
 	if view.Handler == "" {
+		method := view.Method
+		if method == "" {
+			method = "GET"
+		}
+		viewName, err := SanitizeName(view.Name)
+		if err != nil {
+			return nil, nil, fmt.Errorf("Invalid view name '%s': %s", view.Name, err)
+		}
+
 		// base page handler
 		viewHandler = &handlerData{
-			Info:       pageName,
+			Info:       viewName,
 			Doc:        view.Doc,
 			Type:       "(page)",
 			Blocks:     make([]*handlerBlockData, 0, len(view.Blocks)),
-			Identifier: pageName + "PageHandler",
+			Identifier: viewName + "Handler",
+			Method:     strings.ToUpper(method),
 		}
 	}
 
@@ -90,7 +102,7 @@ func processViewHandlers(view *generate.PartialDef, pageName string) (*handlerDa
 		}
 
 		for _, partial := range block.partials {
-			blockHandlers, err := processHandlersDef(block.ident, partial)
+			blockHandlers, err := processHandlersDef(block.name, partial)
 			if err != nil {
 				return nil, nil, err
 			}
@@ -119,6 +131,10 @@ func processHandlersDef(blockName string, def *generate.PartialDef) ([]*handlerD
 	var handler *handlerData
 
 	if def.Handler == "" {
+		method := def.Method
+		if method == "" {
+			method = "GET"
+		}
 		// base page handler
 		handler = &handlerData{
 			Info:       entryName,
@@ -127,6 +143,7 @@ func processHandlersDef(blockName string, def *generate.PartialDef) ([]*handlerD
 			Type:       entryType,
 			Blocks:     make([]*handlerBlockData, 0, len(def.Blocks)),
 			Identifier: entryName + "Handler",
+			Method:     strings.ToUpper(method),
 		}
 		handlers = append(handlers, handler)
 	}
