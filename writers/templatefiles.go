@@ -64,7 +64,7 @@ func WriteIndexFile(dir string, view *generate.PartialDef, otherPages map[string
 		}
 	}
 
-	blockList, err := iterateSortedBlocks(view.Blocks)
+	blockList, err := IterateSortedBlocks(view.Blocks)
 	if err != nil {
 		return fileName, err
 	}
@@ -101,7 +101,7 @@ func WriteIndexFile(dir string, view *generate.PartialDef, otherPages map[string
 
 func WriteTemplateBlock(dir string, blocks map[string][]*generate.PartialDef) ([]string, error) {
 	var created []string
-	blockList, err := iterateSortedBlocks(blocks)
+	blockList, err := IterateSortedBlocks(blocks)
 	if err != nil {
 		return created, err
 	}
@@ -142,7 +142,7 @@ func writePartialTemplate(dir string, def *generate.PartialDef, extends string) 
 			Merge:    def.Merge,
 			Blocks:   make([]*htmlBlockData, 0, len(def.Blocks)),
 		}
-		blockList, err := iterateSortedBlocks(def.Blocks)
+		blockList, err := IterateSortedBlocks(def.Blocks)
 		if err != nil {
 			return created, err
 		}

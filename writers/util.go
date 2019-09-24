@@ -22,7 +22,7 @@ type blockDef struct {
 	partials []*generate.PartialDef
 }
 
-func iterateSortedBlocks(blocks map[string][]*generate.PartialDef) ([]blockDef, error) {
+func IterateSortedBlocks(blocks map[string][]*generate.PartialDef) ([]blockDef, error) {
 	output := make([]blockDef, 0, len(blocks))
 	var keys []string
 	for k := range blocks {

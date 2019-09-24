@@ -86,7 +86,7 @@ func processViewHandlers(view *generate.PartialDef, pageName string) (*handlerDa
 		}
 	}
 
-	blocks, err := iterateSortedBlocks(view.Blocks)
+	blocks, err := IterateSortedBlocks(view.Blocks)
 	if err != nil {
 		return nil, nil, err
 	}
@@ -148,7 +148,7 @@ func processHandlersDef(blockName string, def *generate.PartialDef) ([]*handlerD
 		handlers = append(handlers, handler)
 	}
 
-	blocks, err := iterateSortedBlocks(def.Blocks)
+	blocks, err := IterateSortedBlocks(def.Blocks)
 	if err != nil {
 		return handlers, err
 	}

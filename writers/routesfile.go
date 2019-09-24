@@ -130,7 +130,7 @@ func processViewDef(name string, def *generate.PartialDef, templatePath string) 
 		view.Assignment = view.Assignment + "View"
 	}
 
-	sortedBlocks, err := iterateSortedBlocks(def.Blocks)
+	sortedBlocks, err := IterateSortedBlocks(def.Blocks)
 	if err != nil {
 		return view, entries, routes, err
 	}
@@ -247,7 +247,7 @@ func processEntries(extends, blockName string, names []string, def *generate.Par
 
 	entries = append(entries, entry)
 
-	sortedBlocks, err := iterateSortedBlocks(def.Blocks)
+	sortedBlocks, err := IterateSortedBlocks(def.Blocks)
 	if err != nil {
 		return entries, routes, err
 	}
