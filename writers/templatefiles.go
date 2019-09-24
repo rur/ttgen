@@ -54,7 +54,7 @@ func WriteIndexFile(dir string, view *generate.PartialDef, otherPages map[string
 	defer sf.Close()
 
 	links := make([]*indexSiteLinksData, 0, len(otherPages))
-	for _, other := range otherPages {
+	for _, other := range IterateSortedViews(otherPages) {
 		if other.URI != "" {
 			links = append(links, &indexSiteLinksData{
 				URI:    other.URI,
