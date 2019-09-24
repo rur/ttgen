@@ -191,6 +191,9 @@ func processViewDef(name string, def *generate.PartialDef, templatePath string) 
 	if view.Template == "" {
 		view.Template = filepath.Join(templatePath, fmt.Sprintf("%s.html.tmpl", def.Name))
 	}
+	// also update definition
+	def.Handler = view.Handler
+	def.Template = view.Template
 
 	return view, entries, routes, err
 }
