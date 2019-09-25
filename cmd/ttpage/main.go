@@ -109,11 +109,11 @@ func main() {
 		log.Fatalf("Treetop Page Generate FAILED")
 	} else {
 		// attempt to format the go code
-		// this should not cause the generate command to fail if go fmt fails for some reason
+		// this should not cause the generate command to fail if gofmt fails for some reason
 		var fmtError []string
 		for i := range createdFiles {
 			if strings.HasSuffix(createdFiles[i], ".go") {
-				cmd := exec.Command("go", "fmt", path.Join(outfolder, createdFiles[i]))
+				cmd := exec.Command("gofmt", "-w", path.Join(outfolder, createdFiles[i]))
 				output, err := cmd.CombinedOutput()
 				if err != nil {
 					fmtError = append(fmtError, fmt.Sprintf("%s Error: %s\nOutput: %s", createdFiles[i], err, string(output)))
@@ -122,7 +122,7 @@ func main() {
 		}
 		if len(fmtError) > 0 {
 			log.Fatalf(
-				"Generated folder %s but `go fmt` failed for the following files:\n\t%s",
+				"Generated folder %s but `gofmt` failed for the following files:\n\t%s",
 				outfolder,
 				strings.Join(fmtError, "\n\t"),
 			)
