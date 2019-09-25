@@ -7,13 +7,19 @@ import (
 	"{{ .Namespace }}/app"
 )
 
-{{ range $index, $handler := .Handlers }}
+{{ if .ViewHandlers -}}
+// -------------------------
+// {{.PageName}} View Handlers
+// -------------------------
+{{ end }}
+{{ range $index, $handler := .ViewHandlers }}
 // {{ $handler.Info }} {{ $handler.Type }}{{ if $handler.Extends }}
-// Extends: {{ $handler.Extends }}{{ end }}{{ if $handler.Doc }}
+// Extends: {{ $handler.Extends }}{{ end }}
+// Method: {{ $handler.Method }}{{ if $handler.Doc }}
 // Doc: {{ $handler.Doc }}
-{{- end }}{{ if len $handler.Blocks}}
+{{- end }}
 func {{ $handler.Identifier }}(rsc app.Resources, rsp treetop.Response, req *http.Request) interface{} {
-	return  struct {
+	data :=  struct {
 		HandlerInfo string{{ range $index, $block := .Blocks }}
 		{{ $block.FieldName }} interface{}
 		{{- end }}
@@ -22,8 +28,31 @@ func {{ $handler.Identifier }}(rsc app.Resources, rsp treetop.Response, req *htt
 		{{ $block.FieldName }}: rsp.HandlePartial("{{ $block.Name }}", req),
 		{{- end }}
 	}
-}{{ else }}
+	return data
+}
+{{ end }}
+
+{{ if .BlockHandlers -}}
+// -------------------------
+// {{.PageName}} Block Handlers
+// -------------------------
+{{ end }}
+{{ range $index, $handler := .BlockHandlers }}
+// {{ $handler.Info }} {{ $handler.Type }}{{ if $handler.Extends }}
+// Extends: {{ $handler.Extends }}{{ end }}
+// Method: {{ $handler.Method }}{{ if $handler.Doc }}
+// Doc: {{ $handler.Doc }}
+{{- end }}
 func {{ $handler.Identifier }}(rsc app.Resources, rsp treetop.Response, req *http.Request) interface{} {
-	return  "{{ $handler.Info }} template data here!"
-}{{ end }}
+	data :=  struct {
+		HandlerInfo string{{ range $index, $block := .Blocks }}
+		{{ $block.FieldName }} interface{}
+		{{- end }}
+	}{
+		HandlerInfo: "{{ $handler.Info }}",{{ range $index, $block := .Blocks }}
+		{{ $block.FieldName }}: rsp.HandlePartial("{{ $block.Name }}", req),
+		{{- end }}
+	}
+	return data
+}
 {{ end }}

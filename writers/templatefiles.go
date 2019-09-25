@@ -44,9 +44,9 @@ type indexData struct {
 	Blocks    []*htmlBlockData
 }
 
-func WriteIndexFile(dir string, pageDef *generate.PartialDef, otherPages []generate.PartialDef) (string, error) {
-	fileName := "index.html.tmpl"
-	filePath := filepath.Join(dir, "index.html.tmpl")
+func WriteIndexFile(dir string, view *generate.PartialDef, otherPages map[string]*generate.PartialDef) (string, error) {
+	fileName := fmt.Sprintf("%s.html.tmpl", view.Name)
+	filePath := filepath.Join(dir, fileName)
 	sf, err := os.Create(filePath)
 	if err != nil {
 		return fileName, err
@@ -54,30 +54,30 @@ func WriteIndexFile(dir string, pageDef *generate.PartialDef, otherPages []gener
 	defer sf.Close()
 
 	links := make([]*indexSiteLinksData, 0, len(otherPages))
-	for _, other := range otherPages {
+	for _, other := range IterateSortedViews(otherPages) {
 		if other.URI != "" {
 			links = append(links, &indexSiteLinksData{
 				URI:    other.URI,
 				Label:  other.Name,
-				Active: other.URI != pageDef.URI,
+				Active: other.URI != view.URI,
 			})
 		}
 	}
 
-	blockList, err := iterateSortedBlocks(pageDef.Blocks)
+	blockList, err := IterateSortedBlocks(view.Blocks)
 	if err != nil {
 		return fileName, err
 	}
 	blocks := make([]*htmlBlockData, 0, len(blockList))
 	for _, block := range blockList {
 		blockData := htmlBlockData{
-			FieldName:  generate.ValidPublicIdentifier(block.name),
-			Identifier: block.ident,
-			Name:       block.name,
-			Partials:   make([]*htmlBlockPartialData, 0, len(block.partials)),
+			FieldName:  generate.ValidPublicIdentifier(block.Name),
+			Identifier: block.Ident,
+			Name:       block.Name,
+			Partials:   make([]*htmlBlockPartialData, 0, len(block.Partials)),
 		}
 		blocks = append(blocks, &blockData)
-		for _, partial := range block.partials {
+		for _, partial := range block.Partials {
 			blockData.Partials = append(blockData.Partials, &htmlBlockPartialData{
 				Path:     partial.Path,
 				Name:     partial.Name,
@@ -88,7 +88,7 @@ func WriteIndexFile(dir string, pageDef *generate.PartialDef, otherPages []gener
 	}
 
 	err = indexTemplate.Execute(sf, indexData{
-		Title:     pageDef.Name,
+		Title:     view.Name,
 		SiteLinks: links,
 		Blocks:    blocks,
 	})
@@ -101,24 +101,24 @@ func WriteIndexFile(dir string, pageDef *generate.PartialDef, otherPages []gener
 
 func WriteTemplateBlock(dir string, blocks map[string][]*generate.PartialDef) ([]string, error) {
 	var created []string
-	blockList, err := iterateSortedBlocks(blocks)
+	blockList, err := IterateSortedBlocks(blocks)
 	if err != nil {
 		return created, err
 	}
 	for _, block := range blockList {
-		blockTemplDir := path.Join(dir, block.ident)
+		blockTemplDir := path.Join(dir, block.Ident)
 		if _, err := os.Stat(blockTemplDir); os.IsNotExist(err) {
 			if err := os.Mkdir(blockTemplDir, os.ModePerm); err != nil {
 				return created, fmt.Errorf("Error creating template dir '%s': %s", blockTemplDir, err)
 			}
 		}
-		for _, def := range block.partials {
-			files, err := writePartialTemplate(blockTemplDir, def, block.name)
+		for _, def := range block.Partials {
+			files, err := writePartialTemplate(blockTemplDir, def, block.Name)
 			if err != nil {
 				return created, err
 			}
 			for _, file := range files {
-				created = append(created, path.Join(block.ident, file))
+				created = append(created, path.Join(block.Ident, file))
 			}
 		}
 	}
@@ -142,18 +142,18 @@ func writePartialTemplate(dir string, def *generate.PartialDef, extends string) 
 			Merge:    def.Merge,
 			Blocks:   make([]*htmlBlockData, 0, len(def.Blocks)),
 		}
-		blockList, err := iterateSortedBlocks(def.Blocks)
+		blockList, err := IterateSortedBlocks(def.Blocks)
 		if err != nil {
 			return created, err
 		}
 		for _, block := range blockList {
 			blockData := htmlBlockData{
-				FieldName:  generate.ValidPublicIdentifier(block.name),
-				Identifier: block.ident,
-				Name:       block.name,
-				Partials:   make([]*htmlBlockPartialData, 0, len(block.partials)),
+				FieldName:  generate.ValidPublicIdentifier(block.Name),
+				Identifier: block.Ident,
+				Name:       block.Name,
+				Partials:   make([]*htmlBlockPartialData, 0, len(block.Partials)),
 			}
-			for _, bPartial := range block.partials {
+			for _, bPartial := range block.Partials {
 				blockData.Partials = append(blockData.Partials, &htmlBlockPartialData{
 					Path:     bPartial.Path,
 					Name:     bPartial.Name,

@@ -10,6 +10,7 @@ import (
 type Mux interface {
 	HandleGET(pattern string, handler http.Handler)
 	HandlePOST(pattern string, handler http.Handler)
+	Handle(pattern string, handler http.Handler)
 }
 
 // Demonstration for the the Go standard library 'Mux'
@@ -35,6 +36,12 @@ func (s StandardMux) HandlePOST(pattern string, handler http.Handler) {
 			http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
 			return
 		}
+		handler.ServeHTTP(w, req)
+	})
+}
+
+func (s StandardMux) Handle(pattern string, handler http.Handler) {
+	s.Mux.HandleFunc(pattern, func(w http.ResponseWriter, req *http.Request) {
 		handler.ServeHTTP(w, req)
 	})
 }

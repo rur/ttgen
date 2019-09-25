@@ -3,16 +3,14 @@ package writers
 import (
 	"os"
 	"path/filepath"
-
-	generate "github.com/rur/ttgen"
 )
 
 type startdata struct {
 	Namespace string
-	Pages     []string
+	PageName  string
 }
 
-func WriteStartFile(dir string, pages []generate.PartialDef, namespace string) (string, error) {
+func WriteStartFile(dir string, pageName, namespace string) (string, error) {
 	fileName := "start.go"
 	filePath := filepath.Join(dir, "start.go")
 	sf, err := os.Create(filePath)
@@ -21,18 +19,9 @@ func WriteStartFile(dir string, pages []generate.PartialDef, namespace string) (
 	}
 	defer sf.Close()
 
-	pageNames := make([]string, len(pages))
-	for i, def := range pages {
-		pageNames[i] = def.Name
-	}
-
 	err = startTemplate.Execute(sf, startdata{
 		Namespace: namespace,
-		Pages:     pageNames,
+		PageName:  pageName,
 	})
-	if err != nil {
-		return fileName, err
-	}
-
-	return fileName, nil
+	return fileName, err
 }

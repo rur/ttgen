@@ -16,7 +16,7 @@ package {{ .Pkg }}
 
 `
 
-func WriteRoutemapFiles(dir string, pageDef *generate.PartialDef, namespace, pageName string, encoder generate.SitemapEncoder) ([]string, error) {
+func WriteRoutemapFiles(dir string, views map[string]*generate.PartialDef, namespace, pageName string, encoder generate.RouteMapEncoder) ([]string, error) {
 	var files []string
 
 	templateName := "routes.go.templ"
@@ -45,9 +45,10 @@ func WriteRoutemapFiles(dir string, pageDef *generate.PartialDef, namespace, pag
 		}
 	}
 
-	if enc, ext, err := encoder(generate.Sitemap{
+	if enc, ext, err := encoder(generate.RouteMap{
 		Namespace: namespace,
-		Pages:     []generate.PartialDef{*pageDef},
+		Page:      pageName,
+		Views:     views,
 	}); err != nil {
 		return files, err
 	} else {

@@ -8,21 +8,20 @@ This was created to make it easier for me to experiment with different developme
 
 This is maintained as a personal tool, behavior may change without notice.
 
-## CLI
 
-### `ttsitemap` Command
+## Command `ttpage`
 
-Generate a functioning example site for a Treetop application given a potentially multi-page sitemap
-definition. The files will be created in a temporary directory. The generated folder path is piped to stdout by default.
+Generate a functioning scaffold site based upon a routing configuration for a webpage.
+The scaffold files will be created in a temporary directory and the temporary folder path is piped to stdout by default.
 
-#### Example Usage
+### Example Usage
 
-    # Usage: ttsitemap SITEMAP [OPTIONS]
-    ttgen sitemap.yaml
+    # Usage: ttpage SITEMAP [OPTIONS]
+    ttpage routemap.toml
     -> /tmp/12345678
 
 
-#### Options:
+### Options:
 
 `--human` Send human readable output to stdout
 
@@ -30,12 +29,11 @@ definition. The files will be created in a temporary directory. The generated fo
 
 `--out-format FORMAT` Specify an out format for the routemap files. 'YAML' by default but 'TOML' is also supported.
 
-### `ttroutes` Command
+## Command `ttroutes`
 
-Generate a page routes.go file given a 'routemap' YAML file. This is the same format as the
-the sitemap YAML but only the first page in the list will be adopted
+Generate an updated page routes.go file given a config file and a template.
 
-#### Example Usage
+### Example Usage
 
     # Usage: ttroutes ROUTEMAP TEMPLATE DEST
     ttroutes routemap.yaml routes.go.templ routes.go
