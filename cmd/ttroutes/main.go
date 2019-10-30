@@ -9,7 +9,6 @@ import (
 	"path"
 	"path/filepath"
 	"strings"
-	"time"
 
 	generate "github.com/rur/ttgen"
 	writers "github.com/rur/ttgen/writers"
@@ -28,7 +27,6 @@ var genheader = `
 // This file was created by github.com/rur/ttgen/cmd/ttroutes
 // Map file: %s
 // Template file: %s
-// Local time: %s
 
 %s
 `
@@ -74,7 +72,6 @@ func main() {
 		genheader,
 		routemapFilePath,
 		templPath,
-		time.Now().Format("Mon Jan _2 15:04:05 2006"),
 		string(templData),
 	)
 
