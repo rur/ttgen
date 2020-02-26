@@ -25,7 +25,7 @@ func {{ $handler.Identifier }}(rsc app.Resources, rsp treetop.Response, req *htt
 		{{- end }}
 	}{
 		HandlerInfo: "{{ $handler.Info }}",{{ range $index, $block := .Blocks }}
-		{{ $block.FieldName }}: rsp.HandlePartial("{{ $block.Name }}", req),
+		{{ $block.FieldName }}: rsp.HandleSubView("{{ $block.Name }}", req),
 		{{- end }}
 	}
 	return data
@@ -50,7 +50,7 @@ func {{ $handler.Identifier }}(rsc app.Resources, rsp treetop.Response, req *htt
 		{{- end }}
 	}{
 		HandlerInfo: "{{ $handler.Info }}",{{ range $index, $block := .Blocks }}
-		{{ $block.FieldName }}: rsp.HandlePartial("{{ $block.Name }}", req),
+		{{ $block.FieldName }}: rsp.HandleSubView("{{ $block.Name }}", req),
 		{{- end }}
 	}
 	return data
