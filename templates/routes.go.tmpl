@@ -5,10 +5,11 @@ import (
 	"{{ .Namespace }}/page"
 )
 
-func Routes(cxt page.Context, m page.Mux, renderer *treetop.Renderer) {
+func Routes(cxt page.Context, m page.Mux, exec treetop.TemplateExec) {
 	{{ block "routes" . }}
 	{{ range $index, $view := .Views }}
-	{{ $view.Assignment }} := renderer.NewView(
+	{{ $view.Assignment }} := treetop.NewView(
+		exec,
 		"{{ $view.Template }}",
 		{{ $view.Handler }},
 	)

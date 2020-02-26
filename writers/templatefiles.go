@@ -5,6 +5,7 @@ import (
 	"os"
 	"path"
 	"path/filepath"
+	"strings"
 
 	generate "github.com/rur/ttgen"
 )
@@ -14,6 +15,7 @@ type htmlBlockPartialData struct {
 	Name     string
 	Fragment bool
 	Default  bool
+	POSTOnly bool
 }
 
 type htmlBlockData struct {
@@ -83,6 +85,7 @@ func WriteIndexFile(dir string, view *generate.PartialDef, otherPages map[string
 				Name:     partial.Name,
 				Fragment: partial.Fragment,
 				Default:  partial.Default,
+				POSTOnly: strings.ToUpper(partial.Method) == "POST",
 			})
 		}
 	}
@@ -159,6 +162,7 @@ func writePartialTemplate(dir string, def *generate.PartialDef, extends string) 
 					Name:     bPartial.Name,
 					Fragment: bPartial.Fragment,
 					Default:  bPartial.Default,
+					POSTOnly: strings.ToUpper(bPartial.Method) == "POST",
 				})
 			}
 			partial.Blocks = append(partial.Blocks, &blockData)

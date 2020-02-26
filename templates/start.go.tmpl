@@ -21,11 +21,10 @@ func main() {
 
 	server := app.NewServer()
 
-	renderer := treetop.NewRenderer(treetop.DefaultTemplateExec)
 	{{ .PageName }}.Routes(
 		page.NewContext(server),
 		page.StandardMux{Mux: m},
-		renderer,
+		treetop.DefaultTemplateExec,
 	)
 
 	fmt.Printf("Starting {{ $.Namespace }} server at %s", addr)
