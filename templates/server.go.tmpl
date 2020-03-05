@@ -31,7 +31,7 @@ func (s *server) LoadResources(responseID uint32, cxt context.Context, req *http
 		s.RUnlock()
 		return rsc, nil
 	}
-	s.RUnlock() // dont need this lock any more
+	s.RUnlock() // don't need this lock any more
 	// EDITME: inject arguments that the resource initialization code needs from the server instance
 	rsc, err := NewRequestResources(req)
 	if err != nil {

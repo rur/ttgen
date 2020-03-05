@@ -21,11 +21,17 @@ func main() {
 
 	server := app.NewServer()
 
+	exec := treetop.FileExecutor{}
+
 	{{ .PageName }}.Routes(
 		page.NewContext(server),
 		page.StandardMux{Mux: m},
-		treetop.DefaultTemplateExec,
+		&exec,
 	)
+
+	if errs := exec.FlushErrors(); len(errs) > 0 {
+		log.Fatalf("Template errors:\n%s", errs)
+	}
 
 	fmt.Printf("Starting {{ $.Namespace }} server at %s", addr)
 	// Bind to an addr and pass our router in
