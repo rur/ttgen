@@ -5,24 +5,23 @@ import (
 	"{{ .Namespace }}/page"
 )
 
-func Routes(cxt page.Context, m page.Mux, exec treetop.TemplateExec) {
+func Routes(cxt page.Context, m page.Mux, exec treetop.ViewExecutor) {
 	{{ block "routes" . }}
 	{{ range $index, $view := .Views }}
 	{{ $view.Assignment }} := treetop.NewView(
-		exec,
 		"{{ $view.Template }}",
 		{{ $view.Handler }},
 	)
 	{{ end }}
 	{{ range $index, $entry := .Entries -}}
 	{{ if eq $entry.Type "DefaultSubView" -}}
-	{{ $entry.Assignment }} {{ $entry.Extends }}.DefaultSubView(
+	{{ $entry.Assignment }} {{ $entry.Extends }}.NewDefaultSubView(
 		"{{ $entry.Block }}",
 		"{{ $entry.Template }}",
 		{{ $entry.Handler }},
 	)
 	{{- else if eq $entry.Type "SubView" -}}
-	{{ $entry.Assignment }} {{ $entry.Extends }}.SubView(
+	{{ $entry.Assignment }} {{ $entry.Extends }}.NewSubView(
 		"{{ $entry.Block }}",
 		"{{ $entry.Template }}",
 		{{ $entry.Handler }},
@@ -34,8 +33,8 @@ func Routes(cxt page.Context, m page.Mux, exec treetop.TemplateExec) {
 	{{- end }}
 	{{ end }}{{ range $index, $route := .Routes }}
 	m.Handle{{ $route.Method }}("{{ $route.Path }}",
-		{{ if not $route.Includes }}treetop.ViewHandler({{ $route.Reference }})
-		{{- else }}treetop.ViewHandler(
+		{{ if not $route.Includes }}exec.NewViewHandler({{ $route.Reference }})
+		{{- else }}exec.NewViewHandler(
 			{{ $route.Reference }},
 			{{ range $index, $include := $route.Includes }}{{ $include }},
 		{{end}})
