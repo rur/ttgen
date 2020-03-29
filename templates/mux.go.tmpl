@@ -2,7 +2,6 @@ package page
 
 import (
 	"net/http"
-	"strings"
 )
 
 // Using an interface for router configuration
@@ -17,31 +16,29 @@ type Mux interface {
 // EDITME: If you wish to use this approach for routing you will likely need
 //         to implement the Mux interface in your own way.
 type StandardMux struct {
-	Mux *http.ServeMux
+	*http.ServeMux
 }
 
 func (s StandardMux) HandleGET(pattern string, handler http.Handler) {
-	s.Mux.HandleFunc(pattern, func(w http.ResponseWriter, req *http.Request) {
-		if strings.ToLower(req.Method) != "get" {
-			http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
-			return
+	s.ServeMux.HandleFunc(pattern, func(w http.ResponseWriter, req *http.Request) {
+		switch req.Method {
+		case "GET", "HEAD":
+			handler.ServeHTTP(w, req)
+		default:
+			// see https://tools.ietf.org/html/rfc7231#section-4
+			http.Error(w, http.StatusText(http.StatusNotImplemented), http.StatusNotImplemented)
 		}
-		handler.ServeHTTP(w, req)
 	})
 }
 
 func (s StandardMux) HandlePOST(pattern string, handler http.Handler) {
-	s.Mux.HandleFunc(pattern, func(w http.ResponseWriter, req *http.Request) {
-		if strings.ToLower(req.Method) != "post" {
-			http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
-			return
+	s.ServeMux.HandleFunc(pattern, func(w http.ResponseWriter, req *http.Request) {
+		switch req.Method {
+		case "POST":
+			handler.ServeHTTP(w, req)
+		default:
+			// see https://tools.ietf.org/html/rfc7231#section-4
+			http.Error(w, http.StatusText(http.StatusNotImplemented), http.StatusNotImplemented)
 		}
-		handler.ServeHTTP(w, req)
-	})
-}
-
-func (s StandardMux) Handle(pattern string, handler http.Handler) {
-	s.Mux.HandleFunc(pattern, func(w http.ResponseWriter, req *http.Request) {
-		handler.ServeHTTP(w, req)
 	})
 }

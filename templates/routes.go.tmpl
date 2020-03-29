@@ -5,7 +5,7 @@ import (
 	"{{ .Namespace }}/page"
 )
 
-func Routes(cxt page.Context, m page.Mux, exec treetop.ViewExecutor) {
+func Routes(m page.Mux, exec treetop.ViewExecutor) {
 	{{ block "routes" . }}
 	{{ range $index, $view := .Views }}
 	{{ $view.Assignment }} := treetop.NewView(

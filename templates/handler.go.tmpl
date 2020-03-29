@@ -4,7 +4,6 @@ import (
 	"net/http"
 
 	"github.com/rur/treetop"
-	"{{ .Namespace }}/app"
 )
 
 {{ if .ViewHandlers -}}
@@ -18,7 +17,7 @@ import (
 // Method: {{ $handler.Method }}{{ if $handler.Doc }}
 // Doc: {{ $handler.Doc }}
 {{- end }}
-func {{ $handler.Identifier }}(rsc app.Resources, rsp treetop.Response, req *http.Request) interface{} {
+func {{ $handler.Identifier }}(rsp treetop.Response, req *http.Request) interface{} {
 	data :=  struct {
 		HandlerInfo string{{ range $index, $block := .Blocks }}
 		{{ $block.FieldName }} interface{}
@@ -43,7 +42,7 @@ func {{ $handler.Identifier }}(rsc app.Resources, rsp treetop.Response, req *htt
 // Method: {{ $handler.Method }}{{ if $handler.Doc }}
 // Doc: {{ $handler.Doc }}
 {{- end }}
-func {{ $handler.Identifier }}(rsc app.Resources, rsp treetop.Response, req *http.Request) interface{} {
+func {{ $handler.Identifier }}(rsp treetop.Response, req *http.Request) interface{} {
 	data :=  struct {
 		HandlerInfo string{{ range $index, $block := .Blocks }}
 		{{ $block.FieldName }} interface{}

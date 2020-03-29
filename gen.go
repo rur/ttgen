@@ -28,10 +28,7 @@ func main() {
 		"templates/index.html.tmpl":   "indexTempl",
 		"templates/partial.html.tmpl": "partialTempl",
 		"templates/start.go.tmpl":     "startTempl",
-		"templates/context.go.tmpl":   "contextTempl",
 		"templates/mux.go.tmpl":       "muxTempl",
-		"templates/server.go.tmpl":    "serverTempl",
-		"templates/resources.go.tmpl": "resourcesTempl",
 		"templates/routes.go.tmpl":    "routesTempl",
 		"templates/handler.go.tmpl":   "handlerTempl",
 	}

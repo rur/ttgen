@@ -7,7 +7,6 @@ import (
 
 	"github.com/rur/treetop"
 
-	"{{ .Namespace }}/app"
 	"{{ .Namespace }}/page"
 	"{{ $.Namespace }}/page/{{ .PageName }}"
 )
@@ -19,13 +18,10 @@ var (
 func main() {
 	m := http.NewServeMux()
 
-	server := app.NewServer()
-
 	exec := treetop.FileExecutor{}
 
 	{{ .PageName }}.Routes(
-		page.NewContext(server),
-		page.StandardMux{Mux: m},
+		page.StandardMux{ServeMux: m},
 		&exec,
 	)
 

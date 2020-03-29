@@ -184,7 +184,7 @@ func processViewDef(name string, def *generate.PartialDef, templatePath string) 
 
 	view.Handler = def.Handler
 	if view.Handler == "" {
-		view.Handler = fmt.Sprintf("cxt.Bind(%sHandler)", def.Name)
+		view.Handler = fmt.Sprintf("%sHandler", def.Name)
 	}
 
 	view.Template = def.Template
@@ -216,7 +216,7 @@ func processEntries(extends, blockName string, names []string, def *generate.Par
 
 	handler := def.Handler
 	if handler == "" {
-		handler = fmt.Sprintf("cxt.Bind(%sHandler)", entryName)
+		handler = fmt.Sprintf("%sHandler", entryName)
 	}
 
 	template := def.Template

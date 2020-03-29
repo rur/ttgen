@@ -148,11 +148,6 @@ func generateAndWriteFiles(outDir string, page generate.RouteMap, encoder genera
 		return created, fmt.Errorf("Invalid site namespace in config: %s", page.Namespace)
 	}
 
-	appDir := filepath.Join(outDir, "app")
-	if err := os.Mkdir(appDir, os.ModePerm); err != nil {
-		return created, fmt.Errorf("Error creating 'app' dir in temp directory. %s", err)
-	}
-
 	pageDir := filepath.Join(outDir, "page")
 	if err := os.Mkdir(pageDir, os.ModePerm); err != nil {
 		return created, fmt.Errorf("Error creating 'page' dir in temp directory. %s", err)
@@ -215,29 +210,11 @@ func generateAndWriteFiles(outDir string, page generate.RouteMap, encoder genera
 		created = append(created, path.Join("page", pageName, file))
 	}
 
-	file, err = writers.WriteContextFile(pageDir, page.Namespace)
-	if err != nil {
-		return created, fmt.Errorf("Error creating context.go file. %s", err)
-	}
-	created = append(created, path.Join("page", file))
-
 	file, err = writers.WriteMuxFile(pageDir)
 	if err != nil {
 		return created, fmt.Errorf("Error creating mux.go file. %s", err)
 	}
 	created = append(created, path.Join("page", file))
-
-	file, err = writers.WriteServerFile(appDir)
-	if err != nil {
-		return created, fmt.Errorf("Error creating server.go file. %s", err)
-	}
-	created = append(created, path.Join("app", file))
-
-	file, err = writers.WriteResourcesFile(appDir)
-	if err != nil {
-		return created, fmt.Errorf("Error creating resources.go file. %s", err)
-	}
-	created = append(created, path.Join("app", file))
 
 	file, err = writers.WriteStartFile(outDir, page.Page, page.Namespace)
 	if err != nil {
